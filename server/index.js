@@ -147,7 +147,7 @@ app.use('/uploads', express.static('uploads'));
 // Serve static assets if in production
 // if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
-  app.get("*", (req, res) => {   // index.html for all page routes
+  app.use((req, res) => {   // index.html for all page routes
     res.sendFile(path.join(__dirname, "client", "build", "index.html"));
   });
 // }
