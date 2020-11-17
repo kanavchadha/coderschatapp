@@ -149,7 +149,7 @@ app.use('/uploads', express.static('uploads'));
   app.use(express.static("client/build"));
   app.use((req, res) => {   // index.html for all page routes
     console.log(__dirname);
-    res.sendFile(path.join(__dirname, "build", "index.html"));
+    res.sendFile(path.join(__dirname,"..","client", "build", "index.html"));
   });
 // }
 
