@@ -148,6 +148,7 @@ app.use('/uploads', express.static('uploads'));
 // if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
   app.use((req, res) => {   // index.html for all page routes
+    console.log(__dirname);
     res.sendFile(path.join(__dirname,"..","client", "build", "index.html"));
   });
 // }
