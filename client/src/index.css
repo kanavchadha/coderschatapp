@@ -1,0 +1,176 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24292e;
+  background-color: #fff;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.384);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(112, 110, 110);
+}
+
+.app {
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+a{
+  text-decoration: none;
+}
+
+input.error {
+  border-color: red;
+}
+.input-feedback {
+  color: red;
+  height: 5px;
+  margin-top: -12px;
+}
+
+#bottomInputBox{
+  position: fixed !important;
+  bottom: 0;
+  padding: 5px;
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+  max-width: 800px !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap !important;
+  background-color: white;
+  z-index: 10;
+}
+#bottomInputBox input{
+  flex: 1;
+  padding: 0px 5px;
+}
+.message{
+  position: relative;
+  border: 0.5px solid rgba(211, 211, 211, 0.438);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  padding: 0px 6px;
+  margin: 15px 5px;
+  width: fit-content;
+  word-break: break-all;
+}
+.messageDel{
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  border: 0.5px solid white;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 0px 2px;
+  transition: 0.2s;
+}
+.messageDel:hover{
+  background-color: rgba(211, 40, 40, 0.918);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+}
+.message a{
+  font-weight: bold;
+}
+.message a:hover{
+  color: rgb(240, 204, 1);
+  text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}
+.myMessage{
+  background-color: rgb(7, 138, 199);
+  color: white;
+  margin-left: auto;
+}
+.myMessage a{
+  color: white;
+}
+.ant-comment-content-author-name{
+  color: #222;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+.myMessage .ant-comment-content-author-name{
+  color: white;
+}
+
+.codeButton{
+  position: fixed;
+  left: 5px;
+  cursor: pointer;
+  bottom: 50px;
+  text-align: center;
+  border: 1px solid royalblue;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  padding: 6px;
+  box-shadow: 0 5px 8px rgba(0,0,0,0.3);
+}
+
+.runCode{
+  background-color: rgb(23, 139, 23);
+  color: white;
+  border: 1px solid gainsboro;
+  cursor: pointer;
+  border-radius: 5px;
+  outline: none;
+  transition: 0.3s;
+}
+.runCode:hover{
+  flex-grow: 1;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.5);
+}
+.runCode:disabled{
+  background-color: rgb(76, 197, 129);
+  color: lightgray;
+  cursor: not-allowed;
+}
+.runCode:disabled:hover{
+  flex-grow: 0;
+}
+.runChatCode{
+  position: absolute;
+  left: 0px;
+  bottom: 10px;
+}
+
+.bottomDrawer .ant-drawer-body{
+  padding: 0px 10px;
+}
+.ant-drawer-footer{
+  padding: 0px 20px !important;
+}
+.ant-drawer-footer .drawerFooter{
+  display: flex;
+  justify-content: space-between;
+}
+.ant-comment-avatar{
+  margin-right: 6px !important;
+}
