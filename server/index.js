@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 const request = require("request");
 
 const server = require("http").createServer(app);
@@ -144,14 +145,12 @@ io.on("connection", socket => {
 app.use('/uploads', express.static('uploads'));
 
 // Serve static assets if in production
-if (process.env.NODE_ENV === "production") {
-  // Set static folder
+// if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
-  // index.html for all page routes
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  app.get("*", (req, res) => {   // index.html for all page routes
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
   });
-}
+// }
 
 const port = process.env.PORT || 5000
 
