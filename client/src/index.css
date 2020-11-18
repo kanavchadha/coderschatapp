@@ -157,8 +157,8 @@ input.error {
 }
 .runChatCode{
   position: absolute;
-  left: 0px;
-  bottom: 10px;
+  left: 3px;
+  bottom: 12px;
 }
 
 .bottomDrawer .ant-drawer-body{
