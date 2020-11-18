@@ -34,7 +34,7 @@ export class ChatPage extends Component {
     }
 
     componentDidMount() {
-        let server = "http://localhost:5000";
+        let server = "https://codingchatapp.herokuapp.com";
 
         this.props.dispatch(getChats());
 
