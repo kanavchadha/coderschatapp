@@ -41,13 +41,13 @@ function ChatCard(props) {
                         props.message.substring(props.message.length - 3, props.message.length) === 'ogg' ?
                             <video
                                 style={{ maxWidth: '250px' }}
-                                src={`http://localhost:5000/${props.message}`} alt="video"
+                                src={`https://codingchatapp.herokuapp.com/${props.message}`} alt="video"
                                 type="video/mp4" controls
                             /> :
                         props.message.substring(props.message.length - 3, props.message.length) === 'mp3' ?
                             <audio
                                 style={{ maxWidth: '300px' }}
-                                src={`http://localhost:5000/${props.message}`} alt="audio"
+                                src={`https://codingchatapp.herokuapp.com/${props.message}`} alt="audio"
                                 type="audio/mp3" controls
                             /> :
                         props.message.substring(props.message.length - 3, props.message.length) === 'png' ||
@@ -55,10 +55,10 @@ function ChatCard(props) {
                         props.message.substring(props.message.length - 3, props.message.length) === 'jpg' ?
                             <Image
                                 style={{ maxWidth: '200px' }}
-                                src={`http://localhost:5000/${props.message}`}
+                                src={`https://codingchatapp.herokuapp.com/${props.message}`}
                                 alt="img"
                             />:
-                            <p>File: <a href={"http://localhost:5000/"+props.message} target="_blank" rel="noopener noreferrer">{props.message.substring(22,props.message.length)}</a> </p>
+                            <p>File: <a href={"https://codingchatapp.herokuapp.com/"+props.message} target="_blank" rel="noopener noreferrer">{props.message.substring(22,props.message.length)}</a> </p>
                     :
                     <p>
                         {props.message}
