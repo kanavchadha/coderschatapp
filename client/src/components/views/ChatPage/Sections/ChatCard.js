@@ -29,7 +29,7 @@ function ChatCard(props) {
                             theme="monokai"
                             name="Read-Code-Editor"
                             height="250px"
-                            width="225px"
+                            width="240px"
                             readOnly={true}
                             editorProps={{ $blockScrolling: true }}
                             fontSize="14px"
@@ -46,7 +46,7 @@ function ChatCard(props) {
                             /> :
                         props.message.substring(props.message.length - 3, props.message.length) === 'mp3' ?
                             <audio
-                                style={{ maxWidth: '300px' }}
+                                style={{ maxWidth: '275px' }}
                                 src={`https://codingchatapp.herokuapp.com/${props.message}`} alt="audio"
                                 type="audio/mp3" controls
                             /> :
@@ -54,7 +54,7 @@ function ChatCard(props) {
                         props.message.substring(props.message.length - 4, props.message.length) === 'jpeg' ||
                         props.message.substring(props.message.length - 3, props.message.length) === 'jpg' ?
                             <Image
-                                style={{ maxWidth: '200px' }}
+                                style={{ maxWidth: '225px' }}
                                 src={`https://codingchatapp.herokuapp.com/${props.message}`}
                                 alt="img"
                             />:
@@ -72,7 +72,7 @@ function ChatCard(props) {
             />
 
             {   props.type.split('#')[0] === "Code" &&
-                <Button className="runChatCode" shape="circle" icon={<PlayCircleOutlined />} onClick={()=>props.runChatCode(props.message,props.type.split('#')[1])} />
+                <Button className="runChatCode" shape="circle" icon={<PlayCircleOutlined />} onClick={()=>props.runChatCode(props.message,props.type.split('#')[1],props.createdAt)} />
             }
             {   props.currUserId===props.sender._id && new Date(props.createdAt).getTime() >= new Date().getTime() - 600000 &&
                 <span className="messageDel" onClick={()=>{props.delMsg({msgId: props._id,senderId: props.sender._id})}}>

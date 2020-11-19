@@ -3,7 +3,6 @@ import {
     GET_CHATS,
     AFTER_POST_MESSAGE,
     AFTER_DELETE_MESSAGE,
-    EXECUTE_CODE
 } from './types';
 import { CHAT_SERVER } from '../components/Config.js';
 
@@ -29,3 +28,4 @@ export function afterDeleteMessage(data){
         payload: data
     }
 }
+

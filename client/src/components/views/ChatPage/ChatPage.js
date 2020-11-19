@@ -20,7 +20,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools"
 
-const {Option} = Select;
+const { Option } = Select;
 
 export class ChatPage extends Component {
     state = {
@@ -35,6 +35,7 @@ export class ChatPage extends Component {
 
     componentDidMount() {
         let server = "https://codingchatapp.herokuapp.com";
+        // let server = "http://localhost:5000";
 
         this.props.dispatch(getChats());
 
@@ -52,23 +53,6 @@ export class ChatPage extends Component {
             this.props.dispatch(afterDeleteMessage(messageId));
         })
 
-        this.socket.on("After Executing Code", result => {
-            this.setState({execLoading: false});
-            this.setState({codeOutput: result});
-        })
-
-        this.socket.on("After Executing Chat Code", result => {
-            const args = {
-                message: 'Output: ',
-                description: result.error ? result.error : result.output,
-                duration: 0,
-              }            
-            if(result.error){
-                notification.error(args);
-            }else{
-                notification.success(args);
-            }
-        })
     }
 
     componentDidUpdate() {
@@ -150,7 +134,7 @@ export class ChatPage extends Component {
         let userName = this.props.user.userData.name;
         let userImage = this.props.user.userData.image;
         let nowTime = moment();
-        let type = "Code#"+this.state.progLanguage;
+        let type = "Code#" + this.state.progLanguage;
 
         this.socket.emit("Input Chat Message", {
             chatMessage,
@@ -162,28 +146,43 @@ export class ChatPage extends Component {
         });
     }
 
-    runCodeSnippet = ()=>{
-        this.setState({execLoading: true});
+    runCodeSnippet = () => {
+        this.setState({ execLoading: true });
         const code = this.state.codeMessage;
         let language = 'java';
-        if(this.state.progLanguage === 'python'){
+        if (this.state.progLanguage === 'python') {
             language = "python3";
-        }else if(this.state.progLanguage === 'c_cpp'){
+        } else if (this.state.progLanguage === 'c_cpp') {
             language = "cpp14";
-        }else if(this.state.progLanguage === 'javascript'){
+        } else if (this.state.progLanguage === 'javascript') {
             language = "nodejs";
         }
-        this.socket.emit("Execute Code", { code, language });
+        
+        Axios.post('api/chat/executeCode',{code: code,language: language}).then(({data})=>{
+            this.setState({ execLoading: false });
+            this.setState({ codeOutput: data });
+        });
     }
-    runChatCodeSnippet = (code,language)=>{
-        if(language === 'python'){
+    runChatCodeSnippet = (code, language, time) => {
+        if (language === 'python') {
             language = "python3";
-        }else if(language === 'c_cpp'){
+        } else if (language === 'c_cpp') {
             language = "cpp14";
-        }else if(language === 'javascript'){
+        } else if (language === 'javascript') {
             language = "nodejs";
         }
-        this.socket.emit("Execute Chat Code", { code, language });
+        Axios.post('api/chat/executeCode',{code: code,language: language}).then(({data})=>{
+            const args = {
+                    message: `Output: - ${moment(time.toString()).format('YYYY-MM-DD HH:mm:ss')}`,
+                    description: data.error ? data.error : data.output,
+                    duration: 0,
+                }            
+            if(data.error){
+                notification.error(args);
+            }else{
+                notification.success(args);
+            }
+        });
     }
 
     deleteMessage = ({ msgId, senderId }) => {
@@ -239,23 +238,23 @@ export class ChatPage extends Component {
                     </Form>
 
                     <Drawer title="Coding Editor" height="488px" placement="bottom" className="bottomDrawer"
-                     onClose={()=>{this.setState({codeDrawer: false})}}
-                     visible={this.state.codeDrawer}
-                     footer={
-                        <div className="drawerFooter">
-                            <Select defaultValue="javascript" onChange={(value)=>{this.setState({progLanguage: value})}}>
-                                <Option value="javascript">javascript</Option>
-                                <Option value="c_cpp">C and C++</Option>
-                                <Option value="python">Python</Option>
-                                <Option value="java">Java</Option>
-                            </Select>
-                            <button className="runCode" onClick={this.runCodeSnippet} disabled={!this.state.codeMessage}> Run {this.state.execLoading? <Spin size="small" /> : <PlayCircleOutlined />} </button>
-                            <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage}>Send <SendOutlined /></Button>
-                        </div> } >
+                        onClose={() => { this.setState({ codeDrawer: false }) }}
+                        visible={this.state.codeDrawer}
+                        footer={
+                            <div className="drawerFooter">
+                                <Select defaultValue="javascript" onChange={(value) => { this.setState({ progLanguage: value }) }}>
+                                    <Option value="javascript">javascript</Option>
+                                    <Option value="c_cpp">C and C++</Option>
+                                    <Option value="python">Python</Option>
+                                    <Option value="java">Java</Option>
+                                </Select>
+                                <button className="runCode" onClick={this.runCodeSnippet} disabled={!this.state.codeMessage}> Run {this.state.execLoading ? <Spin size="small" /> : <PlayCircleOutlined />} </button>
+                                <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage}>Send <SendOutlined /></Button>
+                            </div>} >
                         <AceEditor
                             mode={this.state.progLanguage}
                             theme="monokai"
-                            onChange={(c)=>{this.setState({codeMessage: c})}}
+                            onChange={(c) => { this.setState({ codeMessage: c }) }}
                             name="Code-Editor"
                             height="400px"
                             width="auto"
@@ -269,18 +268,18 @@ export class ChatPage extends Component {
                             fontSize="16px"
                             className="editor"
                         />
-                        {   Object.keys(this.state.codeOutput).length !== 0 &&
-                            <Alert message={ <div>
-                                    <div> Output: </div>
-                                    <div>{this.state.codeOutput.output}</div>
-                                    <div> CPU-Time: {this.state.codeOutput.cpuTime}</div>
-                                    <div> Memory: {this.state.codeOutput.memory}</div>
-                                    {this.state.codeOutput.error&&<div style={{color: '#ba0016'}}> Error: {this.state.codeOutput.error}</div>}
-                                </div> 
-                            } type={this.state.codeOutput.error?"error":"success"} style={{margin: '10px 0px'}} />
+                        {Object.keys(this.state.codeOutput).length !== 0 &&
+                            <Alert message={<div>
+                                <div> Output: </div>
+                                <div>{this.state.codeOutput.output}</div>
+                                <div> CPU-Time: {this.state.codeOutput.cpuTime}</div>
+                                <div> Memory: {this.state.codeOutput.memory}</div>
+                                {this.state.codeOutput.error && <div style={{ color: '#ba0016' }}> Error: {this.state.codeOutput.error}</div>}
+                            </div>
+                            } type={this.state.codeOutput.error ? "error" : "success"} style={{ margin: '10px 0px' }} />
                         }
                     </Drawer>
-                    <div className="codeButton" onClick={()=>{this.setState({codeDrawer: true})}}><FaCode style={{ fontSize: '1.6rem' }} /></div>
+                    <div className="codeButton" onClick={() => { this.setState({ codeDrawer: true }) }}><FaCode style={{ fontSize: '1.6rem' }} /></div>
                     <BackTop />
                 </div>
             </React.Fragment>

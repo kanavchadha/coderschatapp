@@ -7,3 +7,6 @@ export const LOGOUT_USER = 'logout_user';
 export const GET_CHATS = 'get_chat';
 export const AFTER_POST_MESSAGE = 'after_post_message';
 export const AFTER_DELETE_MESSAGE = 'AFTER_DELETE_MESSAGE';
+
+export const RUN_CHAT_CODE = 'RUN_CHAT_CODE';
+export const CLOSE_CHAT_CODE = 'CLOSE_CHAT_CODE';

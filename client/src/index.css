@@ -80,6 +80,7 @@ input.error {
   padding: 0px 6px;
   margin: 15px 5px;
   width: fit-content;
+  max-width: 96%;
   word-break: break-all;
 }
 .messageDel{

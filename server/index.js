@@ -76,6 +76,7 @@ io.on("connection", socket => {
         })
       } catch (error) {
         console.error(error);
+        return io.emit("Error", error.message);
       }
     })
   });
@@ -94,60 +95,14 @@ io.on("connection", socket => {
     }
   });
 
-  socket.on("Execute Code", ({ code, language }) => {
-    const program = {
-      script : code,
-      language: language,
-      versionIndex: "0",
-      clientId: config.JDoodle_ClientID,
-      clientSecret: config.JDoodle_ClientSecret
-    };
-    request({
-        url: 'https://api.jdoodle.com/v1/execute',
-        method: "POST",
-        json: program
-    }, (error, response, body) => {
-        if(error){
-          console.log(error);
-          return io.emit("Error", error.toString());
-        } else{
-          return io.emit("After Executing Code", body);
-        }
-    });
-  });
-  
-  socket.on("Execute Chat Code", ({ code, language }) => {
-    const program = {
-      script : code,
-      language: language,
-      versionIndex: "0",
-      clientId: config.JDoodle_ClientID,
-      clientSecret: config.JDoodle_ClientSecret
-    };
-    request({
-        url: 'https://api.jdoodle.com/v1/execute',
-        method: "POST",
-        json: program
-    }, (error, response, body) => {
-        if(error){
-          console.log(error);
-          return io.emit("Error", error.toString());
-        } else{
-          return io.emit("After Executing Chat Code", body);
-        }
-    });
-  });
-
 })
 
-//use this to show the image you have in node js server to client (react js)
-//https://stackoverflow.com/questions/48914987/send-image-path-from-node-js-express-server-to-react-client
 app.use('/uploads', express.static('uploads'));
 
 // Serve static assets if in production
 // if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
-  app.use((req, res) => {   // index.html for all page routes
+  app.get("*",(req, res) => {   // index.html for all page routes
     // console.log(__dirname);
     res.sendFile(path.join(__dirname,"..","client", "build", "index.html"));
   });
