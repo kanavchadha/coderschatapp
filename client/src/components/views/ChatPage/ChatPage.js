@@ -68,7 +68,7 @@ export class ChatPage extends Component {
     renderCards = () =>
         this.props.chats.chats
         && this.props.chats.chats.map((chat) => (
-            <ChatCard key={chat._id} currUserId={this.props.user.userData._id} {...chat} delMsg={this.deleteMessage} runChatCode={this.runChatCodeSnippet} />
+            <ChatCard key={chat._id} currUserId={ this.props.user.userData?this.props.user.userData._id:null} {...chat} delMsg={this.deleteMessage} runChatCode={this.runChatCodeSnippet} />
         ));
 
     onDrop = (files) => {
@@ -129,6 +129,10 @@ export class ChatPage extends Component {
     }
 
     sendCodeSnippet = () => {
+        if (this.props.user.userData && !this.props.user.userData.isAuth) {
+            return message.error("Please Login First!");
+        }
+
         let chatMessage = this.state.codeMessage
         let userId = this.props.user.userData._id
         let userName = this.props.user.userData.name;
