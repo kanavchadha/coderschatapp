@@ -13,7 +13,7 @@ import "ace-builds/src-noconflict/ext-language_tools"
 let socket;
 function ChatCard(props) {
     return (
-        <div className={`message ${props.currUserId===props.sender._id&&'myMessage'}`}>
+        <div className={`message ${props.sender._id && props.currUserId===props.sender._id&&'myMessage'}`}>
             <Comment
                 author={props.sender.name}
                 avatar={
