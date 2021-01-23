@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
 import { getBlogDetails, deleteBlog } from '../../../_actions/blogs_actions';
-import { Typography, Spin, Tag, Divider, message, Button, Popconfirm } from 'antd';
+import { Typography, Spin, Tag, Divider, message, Button, Popconfirm, Alert } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
 const { Title } = Typography
@@ -11,6 +11,10 @@ const BlogDetailsPage = (props) => {
     const [post, setPost] = useState('');
     const dispatch = useDispatch();
     const postId = props.match.params.id;
+
+    if (user.userData && !user.userData.isAuth) {
+        return <Alert message="You need to Login first!" type="error" />
+    }
 
     useEffect(() => {
         dispatch(getBlogDetails(postId)).then(async res => {
