@@ -44,7 +44,7 @@ const BlogsPage = (props) => {
         return <Col key={index} lg={8} md={12} xs={24}>
             <Card
                 hoverable
-                style={{ width: 370, marginTop: 16 }}
+                style={{ maxWidth: 370, marginTop: 16 }}
                 actions={[
                     <SettingFilled />,
                     <EditFilled onClick={() => editMyBlog(blog.author._id, blog._id)} />,
