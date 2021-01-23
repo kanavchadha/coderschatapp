@@ -12,10 +12,6 @@ const BlogDetailsPage = (props) => {
     const dispatch = useDispatch();
     const postId = props.match.params.id;
 
-    if (user.userData && !user.userData.isAuth) {
-        return <Alert message="You need to Login first!" type="error" />
-    }
-
     useEffect(() => {
         dispatch(getBlogDetails(postId)).then(async res => {
             if (await res.payload.blog) {
@@ -23,6 +19,10 @@ const BlogDetailsPage = (props) => {
             }
         });
     }, [])
+
+    if (user.userData && !user.userData.isAuth) {
+        return <div style={{margin: '2rem 0.5rem'}}><Alert message="You need to Login first!" type="error" /></div>
+    }
 
     const blogDeleteHandler = (blogId) => {
         if (user.userData && !user.userData.isAuth) {
