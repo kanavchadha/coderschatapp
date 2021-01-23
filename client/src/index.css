@@ -5,6 +5,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+pre {
+  padding: 10px;
+  white-space: pre-wrap;
+  background-color: #333333;
+  color: white;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  border-radius: 10px;
+  box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;
+}
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -20,13 +31,14 @@ body {
   overflow-x: hidden;
 }
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 6.8px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(136, 136, 136, 0.384);
+  background: lightblue;
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -40,6 +52,7 @@ body {
   align-items: center;
   height: 100vh;
 }
+
 a{
   text-decoration: none;
 }
@@ -50,7 +63,82 @@ input.error {
 .input-feedback {
   color: red;
   height: 5px;
-  margin-top: -12px;
+  margin-top: -3px;
+}
+
+.ql-editor {
+  min-height: 360px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.ql-editor img {
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.layout{
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.postPage {
+  min-height: 400px;
+}
+
+.titleIP{
+  padding: 5px;
+  outline: none;
+  font-size: 18px;
+  border: 1px solid lightblue;
+  border-radius: 6px;
+  width: 100%;
+}
+.editor-form{
+  flex: 0.75;
+}
+.cattags{
+  flex: 0.2;
+  border: 1px solid lightblue;
+  padding: 2rem;
+  font-size: 1.2rem;
+}
+.cattags label{
+  padding-left: 15px;
+}
+
+@media(max-width: 745px){
+  .layout {
+    flex-direction: column;
+    justify-content: center;
+  }
+  .editor-form{
+    flex: 1;
+    width: 100%;
+  }
+  .cattags{
+    flex: 0.8;
+    width: 90%;
+  }
+}
+
+.addBlog{
+  position: fixed;
+  right: 25px;
+  bottom: 50px;
+  cursor: pointer;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  outline: none;
+  box-shadow: 0 2px 20px 10px rgba(0, 0, 0, 0.1);
+  transition: 0.3s;
+}
+.addBlog:hover{
+  background: skyblue;
+  box-shadow: 0 2px 20px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-10px) rotate(180deg);
 }
 
 #bottomInputBox{

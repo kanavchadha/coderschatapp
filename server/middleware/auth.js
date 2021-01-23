@@ -17,4 +17,11 @@ let auth = (req, res, next) => {
   });
 };
 
-module.exports = { auth };
+const admin = (req, res, next)=>{
+  if(req.user.role !== 1){
+    return res.json({ error: 'Access Denied!' });
+  }
+  next();
+}
+
+module.exports = { auth, admin };

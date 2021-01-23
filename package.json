@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server/index.js",
     "backend": "nodemon server/index.js",
-    "frontend": "npm run front --prefix client",
+    "frontend": "npm run start --prefix client",
     "heroku-postbuild": "cd client && npm install && npm run build",
     "dev": "concurrently \"npm run backend\" \"npm run start --prefix client\""
   },
@@ -27,6 +27,7 @@
     "react-dropzone": "^10.1.10",
     "react-redux": "^5.0.7",
     "request": "^2.88.2",
+    "slugify": "^1.4.6",
     "socket.io": "^2.2.0"
   },
   "devDependencies": {

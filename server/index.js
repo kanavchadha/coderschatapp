@@ -24,6 +24,7 @@ const { auth } = require("./middleware/auth");
 
 app.use('/api/users', require('./routes/users'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/blog', require('./routes/blogs'));
 
 const multer = require("multer");
 const fs = require("fs");

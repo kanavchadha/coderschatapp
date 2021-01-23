@@ -8,7 +8,7 @@ import { CHAT_SERVER } from '../components/Config.js';
 
 export function getChats(){
     const request = axios.get(`${CHAT_SERVER}/getChats`).then(response => response.data);
-    
+    console.log(request);
     return {
         type: GET_CHATS,
         payload: request

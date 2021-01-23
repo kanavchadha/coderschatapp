@@ -37,7 +37,7 @@ export class ChatPage extends Component {
         let server = "https://codingchatapp.herokuapp.com";
         // let server = "http://localhost:5000";
 
-        this.props.dispatch(getChats());
+        this.props.dispatch(getChats()).then(res=>{console.log(res)});
 
         this.socket = io(server);
 

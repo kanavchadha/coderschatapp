@@ -10,3 +10,10 @@ export const AFTER_DELETE_MESSAGE = 'AFTER_DELETE_MESSAGE';
 
 export const RUN_CHAT_CODE = 'RUN_CHAT_CODE';
 export const CLOSE_CHAT_CODE = 'CLOSE_CHAT_CODE';
+
+export const GET_BLOGS = 'GET_BLOGS';
+export const GET_BLOG_DETAILS = 'GET_BLOG_DETAILS';
+export const GET_BLOG_ID = 'GET_BLOG_ID';
+export const POST_BLOG = 'POST_BLOG';
+export const EDIT_BLOG = 'EDIT_BLOG';
+export const DELETE_BLOG = 'DELETE_BLOG';

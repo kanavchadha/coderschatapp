@@ -14,14 +14,8 @@ function LeftMenu(props) {
       <NavLink to="/chat">Chat</NavLink>
     </Menu.Item>
     <SubMenu title={<span>Blogs</span>}>
-      <MenuItemGroup title="Item 1">
-        <Menu.Item key="setting:1">Option 1</Menu.Item>
-        <Menu.Item key="setting:2">Option 2</Menu.Item>
-      </MenuItemGroup>
-      <MenuItemGroup title="Item 2">
-        <Menu.Item key="setting:3">Option 3</Menu.Item>
-        <Menu.Item key="setting:4">Option 4</Menu.Item>
-      </MenuItemGroup>
+        <Menu.Item key="setting:1"><NavLink to="/blogs">All Blogs</NavLink></Menu.Item>
+        <Menu.Item key="setting:2"><NavLink to="/postnewblog">Write a Blog</NavLink></Menu.Item>
     </SubMenu>
   </Menu>
   )
