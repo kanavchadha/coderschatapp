@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import io from "socket.io-client";
+// import { useHistory } from 'react-router-dom';
 import { connect } from "react-redux";
 import moment from "moment";
 import { getChats, afterPostMessage, afterDeleteMessage, addMember, getRooms, removeMember } from "../../../_actions/chat_actions"
@@ -43,7 +44,7 @@ export class ChatPage extends Component {
         this.socket.off();
         this.socket.disconnect();
     }
-
+    
     componentDidMount() {
         let server = "https://codingchatapp.herokuapp.com";
         // let server = "http://localhost:5000";
@@ -90,7 +91,7 @@ export class ChatPage extends Component {
         })
 
         this.socket.on('online-users in Room', (userList) => {
-            this.setState((prevState)=>{
+            this.setState((prevState) => {
                 return {
                     currRoom: {
                         ...prevState.currRoom,
@@ -101,12 +102,11 @@ export class ChatPage extends Component {
         })
 
         window.addEventListener('beforeunload', this.disconnectUser);
+        
+        window.onpopstate = ()=> {
+            this.disconnectUser();
+        }
 
-        // browserHistory.listen(location => {
-        //     if (location.action === "POP") {
-        //         // Do your stuff
-        //     }
-        // });
     }
 
     componentWillUnmount() { // on leaving this page.
@@ -141,7 +141,7 @@ export class ChatPage extends Component {
     addMemberInRoom = (member) => {
         console.log(member);
         if (!this.state.currRoom) return;
-        if (this.state.currRoom._id === member._id && this.props.user.userData._id!==member.userId) {
+        if (this.state.currRoom._id === member._id && this.props.user.userData._id !== member.userId) {
             const membArr = [...this.state.currRoom.members];
             membArr.push({
                 role: member.role,
@@ -167,7 +167,7 @@ export class ChatPage extends Component {
         if (!this.state.currRoom) return;
         if (this.state.currRoom._id === member.room._id) {
             let membArr = [...this.state.currRoom.members];
-            membArr = membArr.filter((m)=>m.member._id !== member.userId)
+            membArr = membArr.filter((m) => m.member._id !== member.userId)
             this.setState(prevState => {
                 return {
                     currRoom: {
