@@ -56,7 +56,6 @@ const BlogsPage = (props) => {
                         <Avatar src={blog.author.image} />
                     }
                     title={blog.author.name}
-                    description="This is the description"
                 />
                 <div style={{ height: 150, overflowY: 'scroll', marginTop: 10 }}>
                     <div dangerouslySetInnerHTML={{ __html: blog.content }} />

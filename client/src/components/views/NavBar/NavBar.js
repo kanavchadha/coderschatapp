@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import LeftMenu from './Sections/LeftMenu';
 import RightMenu from './Sections/RightMenu';
+import {Link} from 'react-router-dom';
 import { Drawer, Button } from 'antd';
 import {AlignRightOutlined} from '@ant-design/icons';
 import './Sections/Navbar.css';
@@ -21,7 +22,7 @@ function NavBar() {
       
       <div className="menu__container">
           <div className="menu__logo">
-            <a href="/">Let's Chat</a>
+            <Link to="/">Let's Chat </Link>
           </div>
         <div className="menu_left">
           <LeftMenu mode="horizontal" />

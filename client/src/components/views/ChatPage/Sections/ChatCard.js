@@ -1,7 +1,7 @@
 import React from "react";
 import moment from 'moment';
-import { Comment, Tooltip, Avatar, Image, Button } from 'antd';
-import { RestOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Comment, Tooltip, Avatar, Image, Button, Alert } from 'antd';
+import { RestOutlined, PlayCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-c_cpp";
 import "ace-builds/src-noconflict/mode-python";
@@ -10,9 +10,12 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-monokai";
 import "ace-builds/src-noconflict/ext-language_tools"
 
-let socket;
+const APP_DOMAIN = 'https://codingchatapp.herokuapp.com/';
+// const APP_DOMAIN = 'http://localhost:5000/';
 function ChatCard(props) {
-    return (
+    return ( 
+        <React.Fragment>
+        {props.type === 'info' ? <Alert message={props.message+' '+ moment(props.createdAt.toString()).format('YYYY-MM-DD HH:mm:ss')} className="infoMsg" type="info" showIcon /> :
         <div className={`message ${props.currUserId && props.currUserId===props.sender._id&&'myMessage'}`}>
             <Comment
                 author={props.sender.name}
@@ -41,13 +44,13 @@ function ChatCard(props) {
                         props.message.substring(props.message.length - 3, props.message.length) === 'ogg' ?
                             <video
                                 style={{ maxWidth: '250px' }}
-                                src={`https://codingchatapp.herokuapp.com/${props.message}`} alt="video"
+                                src={`${APP_DOMAIN}${props.message}`} alt="video"
                                 type="video/mp4" controls
                             /> :
                         props.message.substring(props.message.length - 3, props.message.length) === 'mp3' ?
                             <audio
                                 style={{ maxWidth: '275px' }}
-                                src={`https://codingchatapp.herokuapp.com/${props.message}`} alt="audio"
+                                src={`${APP_DOMAIN}${props.message}`} alt="audio"
                                 type="audio/mp3" controls
                             /> :
                         props.message.substring(props.message.length - 3, props.message.length) === 'png' ||
@@ -55,10 +58,10 @@ function ChatCard(props) {
                         props.message.substring(props.message.length - 3, props.message.length) === 'jpg' ?
                             <Image
                                 style={{ maxWidth: '225px' }}
-                                src={`https://codingchatapp.herokuapp.com/${props.message}`}
+                                src={`${APP_DOMAIN}${props.message}`}
                                 alt="img"
                             />:
-                            <p>File: <a href={"https://codingchatapp.herokuapp.com/"+props.message} target="_blank" rel="noopener noreferrer">{props.message.substring(22,props.message.length)}</a> </p>
+                            <p><FileTextOutlined />: <a href={APP_DOMAIN+props.message} >{props.message.substring(22,props.message.length)}</a> </p>
                     :
                     <p>
                         {props.message}
@@ -80,7 +83,8 @@ function ChatCard(props) {
                 </span>
             }
             
-        </div>
+        </div>}
+        </React.Fragment>
     )
 }
 

@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.3.0",
-    "antd": "^4.8.2",
+    "antd": "^4.12.3",
     "axios": "^0.18.0",
     "caniuse-lite": "^1.0.30001158",
     "emoji-mart": "^3.0.0",

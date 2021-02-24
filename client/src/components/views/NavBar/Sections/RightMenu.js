@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
-import { Menu } from 'antd';
+import { Menu, message, Avatar, Image } from 'antd';
 import axios from 'axios';
 import { USER_SERVER } from '../../../Config';
 import { NavLink, withRouter } from 'react-router-dom';
@@ -14,9 +14,13 @@ function RightMenu(props) {
       if (response.status === 200) {
         props.history.push("/login");
       } else {
-        alert('Log Out Failed')
+        message.error('Log Out Failed')
       }
     });
+  };
+
+  const myProfile = () => {
+    props.history.push("/myProfile");
   };
 
   if (user.userData && !user.userData.isAuth) {
@@ -33,6 +37,9 @@ function RightMenu(props) {
   } else {
     return (
       <Menu mode={props.mode}>
+        <Menu.Item key="profile">
+          <a onClick={myProfile}> <Avatar src={user.userData && user.userData.image} /> {user.userData && user.userData.name} </a>
+        </Menu.Item>
         <Menu.Item key="logout">
           <a onClick={logoutHandler}>Logout</a>
         </Menu.Item>

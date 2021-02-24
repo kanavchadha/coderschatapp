@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
-import { getBlogDetails, deleteBlog } from '../../../_actions/blogs_actions';
-import { Typography, Spin, Tag, Divider, message, Button, Popconfirm, Alert } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { getBlogDetails } from '../../../_actions/blogs_actions';
+import { Typography, Spin, Tag, Divider, Alert } from 'antd';
 
 const { Title } = Typography
 
@@ -24,21 +23,6 @@ const BlogDetailsPage = (props) => {
         return <div style={{margin: '2rem 0.5rem'}}><Alert message="You need to Login first!" type="error" /></div>
     }
 
-    const blogDeleteHandler = (blogId) => {
-        if (user.userData && !user.userData.isAuth) {
-            return message.error('Please Log in first');
-        }
-        if (user.userData._id.toString() !== post.author._id.toString()) {
-            return message.error('Access Denied!');
-        }
-        dispatch(deleteBlog(blogId)).then(res => {
-            message.success('Blog Deleted Successfully!');
-        }).catch(err => {
-            message.error('Failed! ' + err.message);
-        });
-        props.history.push("/blogs");
-    }
-
     if (post.author) {
         return (
             <div className="postPage" style={{ width: '80%', margin: '3rem auto' }}>
@@ -46,19 +30,6 @@ const BlogDetailsPage = (props) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <h3>{post.author.name}`s Post</h3>
                     <h4>
-                        <Popconfirm
-                            placement="leftTop"
-                            title='Are you sure?'
-                            onConfirm={() => blogDeleteHandler(post._id)}
-                            okText="Yes"
-                            cancelText="No"
-                        >
-                            <Button
-                                type="danger"
-                                icon={<DeleteOutlined />}
-                                style={{marginRight: '10px'}}
-                            />
-                        </Popconfirm>
                         {post.createdAt}
                     </h4>
                 </div>
