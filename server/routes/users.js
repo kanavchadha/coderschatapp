@@ -63,4 +63,22 @@ router.get("/logout", auth, (req, res) => {
     });
 });
 
+router.get("/me", auth, async (req, res) => {
+    try{
+        const currUser = await User.findById(req.user._id).populate('myBlogs','_id title slug').populate('myRooms','_id name logo description');
+        res.send({
+            isAdmin: req.user.role === 0 ? false : true,
+            email: req.user.email,
+            name: req.user.name,
+            lastname: req.user.lastname,
+            role: req.user.role,
+            image: req.user.image,
+            myBlogs: currUser.myBlogs,
+            myRooms: currUser.myRooms
+        });
+    } catch(err){
+        return res.status(500).send({ error: err.message });
+    }
+});
+
 module.exports = router;

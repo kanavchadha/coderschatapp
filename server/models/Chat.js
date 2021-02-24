@@ -4,10 +4,14 @@ const Schema = mongoose.Schema;
 const chatSchema = mongoose.Schema({
     message: {
         type: String
-        },
+    },
     sender: {
         type: Schema.Types.ObjectId,
-        ref: 'User' 
+        ref: 'User'
+    },
+    room: {
+        type: Schema.Types.ObjectId,
+        ref: 'Room'
     },
     type: {
         type: String

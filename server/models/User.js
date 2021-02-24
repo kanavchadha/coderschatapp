@@ -11,11 +11,11 @@ const userSchema = mongoose.Schema({
     email: {
         type:String,
         trim:true,
-        unique: 1 
+        unique: true 
     },
     password: {
         type: String,
-        minglength: 5
+        minlength: 5
     },
     lastname: {
         type:String,
@@ -25,6 +25,8 @@ const userSchema = mongoose.Schema({
         type:Number,
         default: 0 
     },
+    myRooms: [{type: mongoose.Schema.Types.ObjectId, ref: 'Room'}],
+    myBlogs: [{type: mongoose.Schema.Types.ObjectId, ref: 'Blog'}],
     image: String,
     token : {
         type: String,

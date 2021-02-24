@@ -22,6 +22,8 @@ router.post("/createBlog", auth, async (req, res) => {
             tags: req.body.tags
         });
         await blog.save();
+        req.user.myBlogs.push(blog._id);
+        await req.user.save();
         res.send({ success: true });
     } catch (err) {
         console.log(err);
@@ -94,10 +96,11 @@ router.delete("/removeBlog/:id", auth, async (req, res) => {
     try {
         const id = req.params.id;
         const blog = await Blog.findById(id);
-        console.log(blog);
         if (req.user._id.toString() !== blog.author.toString()) {
             return res.status(400).send({ error: 'Access Denied!' });
         }
+        req.user.myBlogs.pull(blog._id);
+        await req.user.save();
         await blog.remove();
         res.send({ success: true });
     } catch (err) {
