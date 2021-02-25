@@ -342,6 +342,7 @@ export class ChatPage extends Component {
                     currUserId={this.props.user.userData && this.props.user.userData._id}
                     currUserName={this.props.user.userData && this.props.user.userData.name}
                     showRooms={this.state.showRooms}
+                    setShowRooms={() => { this.setState({showRooms: false}) }}
                     showRoomInfo={this.state.showCurrRoomInfo}
                     setShowRoomInfo={(v) => { this.setState({ showCurrRoomInfo: v }) }}
                     joinRoom={this.joinCurrRoom}
@@ -360,7 +361,7 @@ export class ChatPage extends Component {
                             </div>
                             <div>
                                 <Button icon={<SettingOutlined />} onClick={() => { this.setState({ showCurrRoomInfo: true }) }} shape="circle" />
-                                <Button type="primary" shape="round" icon={this.state.showRooms ? <CloseOutlined /> : <TeamOutlined />} size="large" onClick={() => { this.setState((prevState) => ({ showRooms: !prevState.showRooms })) }} id="roomsBut" />
+                                <Button type="primary" shape="round" icon={<TeamOutlined />} size="large" onClick={() => { this.setState((prevState) => ({ showRooms: !prevState.showRooms })) }} id="roomsBut" />
                             </div>
                         </div>
                     </Affix>

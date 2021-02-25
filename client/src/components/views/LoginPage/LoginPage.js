@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { withRouter } from "react-router-dom";
+import { withRouter, Link } from "react-router-dom";
 import { loginUser } from "../../../_actions/user_actions";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Form, Input, Button, Checkbox, Typography } from 'antd';
 import { useDispatch } from "react-redux";
-import {UserOutlined, LockOutlined} from '@ant-design/icons';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -47,7 +47,7 @@ function LoginPage(props) {
             .then(response => {
               if (response.payload.loginSuccess) {
                 if (rememberMe === true) {
-                  window.localStorage.setItem('rememberMe', values.id);
+                  window.localStorage.setItem('rememberMe', values.email);
                 } else {
                   localStorage.removeItem('rememberMe');
                 }
@@ -82,7 +82,7 @@ function LoginPage(props) {
           <div className="app">
 
             <Title level={2}>Log In</Title>
-            <form onSubmit={handleSubmit} style={{ width: '350px' }}>
+            <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
 
               <Form.Item required>
                 <Input
@@ -130,11 +130,11 @@ function LoginPage(props) {
                   forgot password
                   </a>
                 <div>
-                  <Button type="primary" htmlType="submit" className="login-form-button" style={{ minWidth: '100%' }} disabled={isSubmitting} onSubmit={handleSubmit}>
+                  <Button type="primary" htmlType="submit" className="login-form-button" disabled={isSubmitting} onSubmit={handleSubmit} block>
                     Log in
-                </Button>
+                  </Button>
                 </div>
-                Or <a href="/register">register now!</a>
+                Or <Link to="/register">register now!</Link>
               </Form.Item>
             </form>
           </div>

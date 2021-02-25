@@ -4,13 +4,13 @@ import { getRooms, updateRoom, deleteRoom } from '../../../../_actions/chat_acti
 import RoomThread from './RoomThread';
 import axios from 'axios';
 import { Drawer, Button, Spin, Image, List, Avatar, message, Modal, Popconfirm, Input, Tooltip, Empty } from 'antd';
-import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone } from '@ant-design/icons';
+import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone, CloseOutlined } from '@ant-design/icons';
 import { CHAT_SERVER } from '../../../Config';
 // import { deleteRoom } from '../../../_actions/chat_actions';
 const { Search } = Input;
 
 function RoomsArea(props) {
-    const { currRoom, setCurrRoom, currUserId, currUserName, showRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, socket } = props;
+    const { currRoom, setCurrRoom, currUserId, currUserName, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, socket } = props;
     const [loading, setLoading] = useState(true);
     // const [rooms, setRooms] = useState([]);
     const [editRoomForm, setEditRoomForm] = useState({ name: '', logo: '', description: '' });
@@ -115,6 +115,7 @@ function RoomsArea(props) {
             <div className={`sidebar ${showRooms && 'toggleDrawer'} `}>
                 <div className="sidebar__header">
                     <h2>My Rooms</h2>
+                    <Button onClick={setShowRooms} icon={<CloseOutlined /> } shape="circle" />
                 </div>
                 <div className="sidebar__body">
                     {loading ? <Spin /> :
@@ -127,7 +128,7 @@ function RoomsArea(props) {
 
             <Drawer
                 title={currRoom && currRoom.name}
-                width={340}
+                width={348}
                 placement="left"
                 closable={true}
                 onClose={() => setShowRoomInfo(false)}

@@ -71,7 +71,7 @@ function RegisterPage(props) {
         } = props;
         return (
           <div className="app">
-            <h2>Sign up</h2>
+            <h2 className="signupHeading">Sign up</h2>
             <Form style={{ maxWidth: '400px', margin: 'auto 5px' }} onSubmit={handleSubmit} >
 
               <Form.Item required label="Name">
