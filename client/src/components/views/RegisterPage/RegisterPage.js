@@ -7,29 +7,6 @@ import { useDispatch } from "react-redux";
 
 import { Form,Input,Button,message} from 'antd';
 
-const formItemLayout = {
-  labelCol: {
-    xs: { span: 24 },
-    sm: { span: 8 },
-  },
-  wrapperCol: {
-    xs: { span: 24 },
-    sm: { span: 16 },
-  },
-};
-const tailFormItemLayout = {
-  wrapperCol: {
-    xs: {
-      span: 24,
-      offset: 0,
-    },
-    sm: {
-      span: 16,
-      offset: 8,
-    },
-  },
-};
-
 function RegisterPage(props) {
   const dispatch = useDispatch();
   return (
@@ -95,7 +72,7 @@ function RegisterPage(props) {
         return (
           <div className="app">
             <h2>Sign up</h2>
-            <Form style={{ minWidth: '385px' }} {...formItemLayout} onSubmit={handleSubmit} >
+            <Form style={{ maxWidth: '400px', margin: 'auto 5px' }} onSubmit={handleSubmit} >
 
               <Form.Item required label="Name">
                 <Input
@@ -182,7 +159,7 @@ function RegisterPage(props) {
                 )}
               </Form.Item>
 
-              <Form.Item {...tailFormItemLayout}>
+              <Form.Item>
                 <Button onClick={handleSubmit} type="primary" disabled={isSubmitting}>
                   Submit
                 </Button>
