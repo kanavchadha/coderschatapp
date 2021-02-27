@@ -395,8 +395,8 @@ export class ChatPage extends Component {
                                         )}
                                     </Dropzone>
                                 </Menu.Item>
-                            </Menu>} placement="topLeft" >
-                            <Button icon={<EllipsisOutlined style={{ transform: 'rotate(90deg)' }} />} shape="circle" />
+                            </Menu> } placement="topCenter" arrow>
+                            <Button shape="circle"> <EllipsisOutlined style={{ transform: 'rotate(90deg)' }} /> </Button>
                         </Dropdown>
                         {this.state.showEmojis && <Picker onSelect={(e) => this.setState((prevState, props) => { return { chatMessage: prevState.chatMessage + e.native } })} style={{ position: 'absolute', bottom: '40px', left: '5px', zIndex: '10', width: '280px' }} />}
                         <SmileOutlined style={{ fontSize: '1.25rem', padding: '0 5px' }} onClick={() => this.setState((prevState, props) => { return { showEmojis: !prevState.showEmojis } })} />

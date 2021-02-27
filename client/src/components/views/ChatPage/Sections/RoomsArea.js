@@ -42,6 +42,7 @@ function RoomsArea(props) {
         // console.log(currRoom);
         joinRoom(cr.name);
         getChats(cr._id);
+        setShowRooms();
     }
 
     const checkAdmin = () => {
@@ -115,12 +116,12 @@ function RoomsArea(props) {
             <div className={`sidebar ${showRooms && 'toggleDrawer'} `}>
                 <div className="sidebar__header">
                     <h2>My Rooms</h2>
-                    <Button onClick={setShowRooms} icon={<CloseOutlined /> } shape="circle" />
+                    <Button className="mobileview" onClick={setShowRooms} icon={<CloseOutlined /> } shape="circle" />
                 </div>
                 <div className="sidebar__body">
                     {loading ? <Spin /> :
                         <div className="allRooms">
-                            {rooms ? rooms.length===0 ? <Empty style={{marginTop: '25px'}} /> : rooms.map(r => <RoomThread key={r._id} name={r.name} logo={r.logo} showRoomInfo={() => showCurrRoom(r._id)} />) : ''}
+                            {rooms ? rooms.length===0 ? <Empty style={{marginTop: '25px'}} /> : rooms.map(r => <RoomThread key={r._id} name={r.name} logo={r.logo} selectedRoom={currRoom ? currRoom.name : ''} showRoomInfo={() => showCurrRoom(r._id)} />) : ''}
                         </div>
                     }
                 </div>
