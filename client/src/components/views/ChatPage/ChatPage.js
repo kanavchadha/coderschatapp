@@ -44,7 +44,7 @@ export class ChatPage extends Component {
         this.socket.off();
         this.socket.disconnect();
     }
-    
+
     componentDidMount() {
         let server = "https://codingchatapp.herokuapp.com";
         // let server = "http://localhost:5000";
@@ -101,9 +101,37 @@ export class ChatPage extends Component {
             })
         })
 
+        this.socket.on('After Blocking Room', data => {
+            this.props.dispatch(getRooms());
+            if(this.state.currRoom._id === data.room.toString()){
+                this.setState(prevState => {
+                    return {
+                        currRoom: {
+                            ...prevState.currRoom,
+                            blocked: data.user
+                        }
+                    }
+                })
+            }
+        })
+
+        this.socket.on('After UnBlocking Room', data => {
+            this.props.dispatch(getRooms());
+            if(this.state.currRoom._id === data.room){
+                this.setState(prevState => {
+                    return {
+                        currRoom: {
+                            ...prevState.currRoom,
+                            blocked: null
+                        }
+                    }
+                })
+            }
+        })
+
         window.addEventListener('beforeunload', this.disconnectUser);
-        
-        window.onpopstate = ()=> {
+
+        window.onpopstate = () => {
             this.disconnectUser();
         }
 
@@ -196,6 +224,10 @@ export class ChatPage extends Component {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error('Please Log in first');
         }
+        if(this.state.currRoom && this.state.currRoom.blocked){
+            return message.error("User Blocked! You Can't send Message");
+        }
+
         let formData = new FormData();
         const config = {
             header: { 'content-type': 'multipart/form-data' }
@@ -235,6 +267,9 @@ export class ChatPage extends Component {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error("Please Login First!");
         }
+        if(this.state.currRoom && this.state.currRoom.blocked){
+            return message.error("User Blocked! You Can't send Message");
+        }
 
         let chatMessage = this.state.chatMessage
         let userId = this.props.user.userData._id
@@ -261,6 +296,9 @@ export class ChatPage extends Component {
     sendCodeSnippet = () => {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error("Please Login First!");
+        }
+        if(this.state.currRoom && this.state.currRoom.blocked){
+            return message.error("User Blocked! You Can't send Message");
         }
 
         let chatMessage = this.state.codeMessage
@@ -332,6 +370,19 @@ export class ChatPage extends Component {
         });
     }
 
+    printRoomHandler = (room) => {
+        if (room.category === 'group') return false;
+        const names = room.name.split('#');
+        const logos = room.logo.split('#');
+        let dName = names[0];
+        let dLogo = logos[0];
+        if (this.props.user.userData && this.props.user.userData.name !== names[1]) {
+            dName = names[1];
+            dLogo = logos[1];
+        }
+        return { name: dName, logo: dLogo };
+    }
+
     render() {
         return (
             <div className="chatPage">
@@ -341,8 +392,9 @@ export class ChatPage extends Component {
                     setCurrRoom={(cr) => { this.setState({ currRoom: cr }) }}
                     currUserId={this.props.user.userData && this.props.user.userData._id}
                     currUserName={this.props.user.userData && this.props.user.userData.name}
+                    currUserAvatar={this.props.user.userData && this.props.user.userData.image}
                     showRooms={this.state.showRooms}
-                    setShowRooms={() => { this.setState({showRooms: false}) }}
+                    setShowRooms={() => { this.setState({ showRooms: false }) }}
                     showRoomInfo={this.state.showCurrRoomInfo}
                     setShowRoomInfo={(v) => { this.setState({ showCurrRoomInfo: v }) }}
                     joinRoom={this.joinCurrRoom}
@@ -354,10 +406,9 @@ export class ChatPage extends Component {
                     <Affix offsetTop={0}>
                         <div className="roomHeader">
                             <Button shape="round" icon={<ArrowLeftOutlined />} onClick={this.closeChatPage} />
-                            {/* <Button shape="round"> <a href="/"><ArrowLeftOutlined /></a> </Button> */}
                             <div>
-                                <Avatar src={this.state.currRoom && this.state.currRoom.logo} />
-                                <span className="txtHeading" style={{ color: 'white' }}>{this.state.currRoom && this.state.currRoom.name}</span>
+                                <Avatar src={this.state.currRoom && this.printRoomHandler(this.state.currRoom) ? this.printRoomHandler(this.state.currRoom).logo : this.state.currRoom.logo} />
+                                <span className="txtHeading" style={{ color: 'white' }}>{this.state.currRoom && this.printRoomHandler(this.state.currRoom) ? this.printRoomHandler(this.state.currRoom).name : this.state.currRoom.name}</span>
                             </div>
                             <div>
                                 <Button icon={<SettingOutlined />} onClick={() => { this.setState({ showCurrRoomInfo: true }) }} shape="circle" />
@@ -395,7 +446,7 @@ export class ChatPage extends Component {
                                         )}
                                     </Dropzone>
                                 </Menu.Item>
-                            </Menu> } placement="topCenter" arrow>
+                            </Menu>} placement="topCenter" arrow>
                             <Button shape="circle"> <EllipsisOutlined style={{ transform: 'rotate(90deg)' }} /> </Button>
                         </Dropdown>
                         {this.state.showEmojis && <Picker onSelect={(e) => this.setState((prevState, props) => { return { chatMessage: prevState.chatMessage + e.native } })} style={{ position: 'absolute', bottom: '40px', left: '5px', zIndex: '10', width: '280px' }} />}
@@ -408,7 +459,7 @@ export class ChatPage extends Component {
                             value={this.state.chatMessage}
                             onChange={this.hanleSearchChange}
                         />
-                        <Button type="primary" onClick={this.submitChatMessage} htmlType="submit" size="large" shape="round">
+                        <Button type="primary" onClick={this.submitChatMessage} htmlType="submit" size="large" shape="round" disabled={!this.state.chatMessage || (this.state.currRoom&&this.state.currRoom.blocked)}>
                             <SendOutlined />
                         </Button>
                     </Form>
@@ -425,7 +476,7 @@ export class ChatPage extends Component {
                                 <Option value="java">Java</Option>
                             </Select>
                             <button className="runCode" onClick={this.runCodeSnippet} disabled={!this.state.codeMessage}> Run {this.state.execLoading ? <Spin size="small" /> : <PlayCircleOutlined />} </button>
-                            <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage}>Send <SendOutlined /></Button>
+                            <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage || (this.state.currRoom&&this.state.currRoom.blocked)}>Send <SendOutlined /></Button>
                         </div>} >
                     <AceEditor
                         mode={this.state.progLanguage}

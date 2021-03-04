@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Link } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { USER_SERVER, CHAT_SERVER } from '../../Config';
-import { Tabs, Spin, Skeleton, Card, Avatar, message, Button, Popconfirm, Modal } from 'antd';
-import { WechatOutlined, PicLeftOutlined, EditOutlined, EllipsisOutlined, SettingOutlined, SolutionOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Tabs, Spin, Skeleton, Card, Avatar, message, Button, Popconfirm, Modal, Input, Popover } from 'antd';
+import { WechatOutlined, PicLeftOutlined, EditOutlined, EllipsisOutlined, SettingOutlined, SolutionOutlined, DeleteOutlined, PlusOutlined, UserAddOutlined } from '@ant-design/icons';
 import { deleteBlog } from '../../../_actions/blogs_actions';
 const { TabPane } = Tabs;
 const { Meta } = Card;
@@ -12,9 +12,11 @@ const { Meta } = Card;
 function UserProfile(props) {
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState(null);
+    const [userContacts, setUserContacts] = useState(null);
     const [userRooms, setUserRooms] = useState(null);
     const [userBlogs, setUserBlogs] = useState(null);
-    const [newRoom, setNewRoom] = useState({name: '', logo: '', description: '' });
+    const [newRoom, setNewRoom] = useState({ name: '', logo: '', description: '' });
+    const [newContact, setNewContact] = useState('');
     const [showForm, setShowForm] = useState(false);
     const dispatch = useDispatch();
 
@@ -23,6 +25,7 @@ function UserProfile(props) {
             if (response.status === 200) {
                 setUserProfile({ name: response.data.name, email: response.data.email, image: response.data.image, isAdmin: response.data.isAdmin });
                 setUserRooms(response.data.myRooms);
+                setUserContacts(response.data.myContacts);
                 setUserBlogs(response.data.myBlogs);
                 setLoading(false);
             } else {
@@ -32,8 +35,22 @@ function UserProfile(props) {
         });
     }, [])
 
+    const addContacts = () => {
+        if (!newContact) {
+            return message.error('All field are required!');
+        }
+        axios.post(`${CHAT_SERVER}/addMyContacts`, { member: newContact }).then(res => {
+            console.log(res.data);
+            setUserContacts(rm => rm.concat(res.data));
+            message.success('User Added in Contact List Successfully.');
+            setNewContact('');
+        }).catch(err => {
+            message.error(err.message);
+        });
+    }
+
     const createRoom = () => {
-        if(!newRoom.name || !newRoom.logo || !newRoom.description){
+        if (!newRoom.name || !newRoom.logo || !newRoom.description) {
             return message.error('All field are required!');
         }
         axios.post(`${CHAT_SERVER}/createRoom`, newRoom).then(res => {
@@ -60,7 +77,7 @@ function UserProfile(props) {
             return message.error('Please Log in first');
         }
         dispatch(deleteBlog(blogId)).then(res => {
-            setUserBlogs(blogs=>blogs.filter(ub=>ub._id !== blogId));
+            setUserBlogs(blogs => blogs.filter(ub => ub._id !== blogId));
             message.success('Blog Deleted Successfully!');
         }).catch(err => {
             message.error('Failed! ' + err.message);
@@ -94,17 +111,43 @@ function UserProfile(props) {
                 <Tabs defaultActiveKey="1" >
                     <TabPane
                         tab={
-                            <span> <WechatOutlined /> My Chat-Rooms </span>
+                            <span> <WechatOutlined /> My Contacts </span>
                         }
                         key="1"
                     >
+                        <Card title="My Contacts" bodyStyle={{ maxHeight: '500px', overflow: 'auto' }}>
+                            <div className="sideBut">
+                                <Popover content={<div className="inline-form">
+                                    <Input value={newContact} onChange={(e) => setNewContact(e.target.value)} />
+                                    <Button onClick={addContacts} type="primary">Add</Button>
+                                </div>} title="Add New Contact" trigger="click">
+                                    <Button type="primary" shape="round" icon={<UserAddOutlined />} style={{ marginBottom: '5px' }}> Add Contacts </Button>
+                                </Popover>
+                            </div>
+                            {userContacts && userContacts.length === 0 ? <h3>You don't have Contacts</h3> :
+                                userContacts.map(rm => <div className="stripe" key={rm._id}>
+                                    <Avatar size='large' src={rm.image} />
+                                    <div>
+                                        <span className="txtHeading">{rm.name}</span> <br />
+                                        <span className="txtBody">{rm.email}</span>
+                                    </div>
+                                </div>)
+                            }
+                        </Card>
+                    </TabPane>
+                    <TabPane
+                        tab={
+                            <span> <WechatOutlined /> My Chat-Rooms </span>
+                        }
+                        key="2"
+                    >
                         <Card title="My ChatRooms" bodyStyle={{ maxHeight: '500px', overflow: 'auto' }}>
-                            <div className="sideBut"><Button type="primary" shape="round" icon={<PlusOutlined />} onClick={()=>setShowForm(true)} style={{marginBottom: '5px'}}> New Room </Button>  </div>
+                            <div className="sideBut"><Button type="primary" shape="round" icon={<PlusOutlined />} onClick={() => setShowForm(true)} style={{ marginBottom: '5px' }}> New Room </Button>  </div>
                             {userRooms && userRooms.length === 0 ? <h3>You don't have any chat-rooms yet</h3> :
                                 userRooms.map(rm => <div className="gridbox" key={rm._id}>
                                     <div>
                                         <Avatar size='large' src={rm.logo} />
-                                        <span className="txtHeading">{rm.name}</span> 
+                                        <span className="txtHeading">{rm.name}</span>
                                     </div>
                                 </div>)
                             }
@@ -114,7 +157,7 @@ function UserProfile(props) {
                         tab={
                             <span> <PicLeftOutlined /> My Blogs </span>
                         }
-                        key="2"
+                        key="3"
                     >
                         <Card title="My Blogs" bodyStyle={{ maxHeight: '500px', overflow: 'auto' }}>
                             {userBlogs && userBlogs.length === 0 ? <h3>You don't have write any blog yet.</h3> :
@@ -145,19 +188,19 @@ function UserProfile(props) {
                     </TabPane>
                 </Tabs>
             }
-            <Modal title="Create New Room" visible={showForm} onOk={createRoom} onCancel={()=>setShowForm(false)}>
-                <input type="text" id="name" placeholder="Name of Room" value={newRoom.name} onChange={(event)=>{
+            <Modal title="Create New Room" visible={showForm} onOk={createRoom} onCancel={() => setShowForm(false)}>
+                <input type="text" id="name" placeholder="Name of Room" value={newRoom.name} onChange={(event) => {
                     const name = event.target.value;
-                    setNewRoom(nr=>({...nr, name: name}))
-                }} className="room-input" required/>
-                <input type="text" id="logo" placeholder="Logo of Room" value={newRoom.logo} onChange={(event)=>{
+                    setNewRoom(nr => ({ ...nr, name: name }))
+                }} className="room-input" required />
+                <input type="text" id="logo" placeholder="Logo of Room" value={newRoom.logo} onChange={(event) => {
                     const logo = event.target.value;
-                    setNewRoom(nr=>({...nr, logo: logo}))
-                }} className="room-input" required/>
-                <input type="text" id="description" placeholder="Description of Room" value={newRoom.description} onChange={(event)=>{
+                    setNewRoom(nr => ({ ...nr, logo: logo }))
+                }} className="room-input" required />
+                <input type="text" id="description" placeholder="Description of Room" value={newRoom.description} onChange={(event) => {
                     const descp = event.target.value;
-                    setNewRoom(nr=>({...nr, description: descp}))
-                }} className="room-input" required/>
+                    setNewRoom(nr => ({ ...nr, description: descp }))
+                }} className="room-input" required />
             </Modal>
         </div>
     );

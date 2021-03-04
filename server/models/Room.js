@@ -1,33 +1,53 @@
 const mongoose = require('mongoose');
+const { Chat } = require('./Chat');
 const Schema = mongoose.Schema;
-const {User} = require('./User');
+const { User } = require('./User');
 
 const roomSchema = mongoose.Schema({
     name: {
         type: String,
+        unique: true,
         required: [true, "Name of the Room is required."]
     },
-    logo: {type: String },
-    description: {type: String, default: 'Welcome to Room!'},
+    logo: { type: String },
+    description: { type: String, default: 'Welcome to Room!' },
     members: [{
         member: {
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: [true, "User Not Found!"]
         },
-        role: { type: Number, default: 0}
-    }]
+        role: { type: Number, default: 0 }
+    }],
+    category: {
+        type: String,
+        default: 'group',
+        validate: {
+            validator: function (v) {
+                if (v === 'oto') {
+                    return this.members.length === 2;
+                }
+                return true;
+            },
+            message: () => 'Not Possible!'
+        }
+    },
+    blocked: {
+        type: String,
+        default: null
+    }
 
 }, { timestamps: true });
 
-roomSchema.pre('remove',function(next){
+roomSchema.pre('remove', function (next) {
     const room = this;
     console.log(room);
     room.members.forEach(async (m) => {
         let user = await User.findById(m.member);
         user.myRooms.pull(room._id)
-        await user.save();
+        user.save();
     });
+    Chat.deleteMany({ room: room._id });
     next();
 })
 

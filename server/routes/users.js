@@ -65,7 +65,7 @@ router.get("/logout", auth, (req, res) => {
 
 router.get("/me", auth, async (req, res) => {
     try{
-        const currUser = await User.findById(req.user._id).populate('myBlogs','_id title slug').populate('myRooms','_id name logo description');
+        const currUser = await User.findById(req.user._id).populate('myBlogs','_id title slug').populate('myRooms','_id name logo description').populate('myContacts', '_id name image email');
         res.send({
             isAdmin: req.user.role === 0 ? false : true,
             email: req.user.email,
@@ -74,7 +74,8 @@ router.get("/me", auth, async (req, res) => {
             role: req.user.role,
             image: req.user.image,
             myBlogs: currUser.myBlogs,
-            myRooms: currUser.myRooms
+            myRooms: currUser.myRooms,
+            myContacts: currUser.myContacts
         });
     } catch(err){
         return res.status(500).send({ error: err.message });

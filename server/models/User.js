@@ -5,48 +5,55 @@ const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
     name: {
-        type:String,
-        maxlength:50
+        type: String,
+        maxlength: 50,
+        validate: {
+            validator: function (v) {
+                return /^[a-zA-Z0-9]{4,10}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid UserName! Should have only Alphanumeric Characters.`
+        },
     },
     email: {
-        type:String,
-        trim:true,
-        unique: true 
+        type: String,
+        trim: true,
+        unique: true
     },
     password: {
         type: String,
         minlength: 5
     },
     lastname: {
-        type:String,
+        type: String,
         maxlength: 50
     },
-    role : {
-        type:Number,
-        default: 0 
+    role: {
+        type: Number,
+        default: 0
     },
-    myRooms: [{type: mongoose.Schema.Types.ObjectId, ref: 'Room'}],
-    myBlogs: [{type: mongoose.Schema.Types.ObjectId, ref: 'Blog'}],
+    myContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    myRooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }],
+    myBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
     image: String,
-    token : {
+    token: {
         type: String,
     },
-    tokenExp :{
+    tokenExp: {
         type: Number
     }
 })
 
 
-userSchema.pre('save', function( next ) {
+userSchema.pre('save', function (next) {
     var user = this;
-    if(user.isModified('password')){    
+    if (user.isModified('password')) {
 
-        bcrypt.genSalt(saltRounds, function(err, salt){
-            if(err) return next(err);
-    
-            bcrypt.hash(user.password, salt, function(err, hash){
-                if(err) return next(err);
-                user.password = hash 
+        bcrypt.genSalt(saltRounds, function (err, salt) {
+            if (err) return next(err);
+
+            bcrypt.hash(user.password, salt, function (err, hash) {
+                if (err) return next(err);
+                user.password = hash
                 next()
             })
         })
@@ -55,20 +62,20 @@ userSchema.pre('save', function( next ) {
     }
 });
 
-userSchema.methods.comparePassword = function(plainPassword,cb){
-    bcrypt.compare(plainPassword, this.password, function(err, isMatch){
+userSchema.methods.comparePassword = function (plainPassword, cb) {
+    bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
         if (err) return cb(err);
         cb(null, isMatch)
     })
 }
 
-userSchema.methods.generateToken = function(cb) {
+userSchema.methods.generateToken = function (cb) {
     var user = this;
-    var token =  jwt.sign(user._id.toHexString(),'secret')
+    var token = jwt.sign(user._id.toHexString(), 'secret')
 
     user.token = token;
-    user.save(function (err, user){
-        if(err) return cb(err)
+    user.save(function (err, user) {
+        if (err) return cb(err)
         cb(null, user);
     })
 }
@@ -76,9 +83,9 @@ userSchema.methods.generateToken = function(cb) {
 userSchema.statics.findByToken = function (token, cb) {
     var user = this;
 
-    jwt.verify(token,'secret',function(err, decode){
-        user.findOne({"_id":decode, "token":token}, function(err, user){
-            if(err) return cb(err);
+    jwt.verify(token, 'secret', function (err, decode) {
+        user.findOne({ "_id": decode, "token": token }, function (err, user) {
+            if (err) return cb(err);
             cb(null, user);
         })
     })

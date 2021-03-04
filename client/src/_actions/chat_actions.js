@@ -8,6 +8,7 @@ import {
     AFTER_DELETE_MESSAGE,
     ADD_MEMBER,
     REMOVE_MEMBER,
+    ADD_ROOM,
 } from './types';
 import { CHAT_SERVER } from '../components/Config.js';
 
@@ -26,6 +27,13 @@ export function getRooms(){
     return {
         type: GET_ROOMS,
         payload: request
+    }
+}
+
+export function addRoom (newRoom){
+    return {
+        type: ADD_ROOM,
+        payload: newRoom
     }
 }
 export function updateRoom (editRoomForm){

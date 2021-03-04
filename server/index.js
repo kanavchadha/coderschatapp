@@ -105,7 +105,7 @@ io.on("connection", socket => {
             })
         })
       } catch (error) {
-        console.error(error);
+        console.log(error);
         return ack(error.message);
       }
     })
@@ -138,7 +138,7 @@ io.on("connection", socket => {
         return ack('This User is Already in this Room.');
       }
       user.myRooms.push(room._id);
-      user.save();
+      await user.save();
       const roomDoc = await Room.findById(room._id);
       roomDoc.members.push({ member: user._id, role: 0 });
       await roomDoc.save();
@@ -180,7 +180,7 @@ io.on("connection", socket => {
         if (err) {
           return res.status(500).send(err.message);
         }
-        
+
         socket.emit('Room Leaved', {});
         socket.leave(currRoom.name);
         removeUser(socket.id);
@@ -201,6 +201,71 @@ io.on("connection", socket => {
       console.log(error.message);
       return ack(error.message);
     }
+  })
+
+  // single chats
+  socket.on('Create OTO Room', async (rd, ack) => {
+    try {
+      const isPresent = await Room.findOne({ category: 'oto', 'members.member': { $all: [rd.fuid, rd.suid] } });
+      // console.log(isPresent);
+      if (isPresent) {
+        return ack({ present: true, roomId: isPresent._id });
+      }
+      const rmembers = [{ member: rd.fuid, role: 0 }, { member: rd.suid, role: 0 }];
+      const otoRoom = new Room({
+        name: rd.fuser + '#' + rd.suser,
+        logo: rd.logo1 + '#' + rd.logo2,
+        category: 'oto',
+        description: '',
+        members: rmembers
+      });
+      await otoRoom.save();
+      const user1 = await User.findById(rd.fuid);
+      user1.myRooms.push(otoRoom._id);
+      await user1.save();
+      const user2 = await User.findById(rd.suid);
+      user2.myRooms.push(otoRoom._id);
+      await user2.save();
+      otoRoom.populate({
+        path: 'members.member',
+        select: 'name email image'
+      }, (err, room) => {
+        if (err) {
+          return ack({ error: err.message });
+        }
+        ack({ room });
+        const addedUser = getUserByEmail(user2.email);
+        if (addedUser) {
+          io.to(addedUser.id).emit('Added In Room', {})
+        }
+      });
+    } catch (err) {
+      return ack({ error: err.message });
+    }
+  });
+
+  socket.on('Block User', async ({ room, user }, ack) => {
+    const broom = await Room.findById(room._id);
+    if (broom.category !== 'oto') {
+      return ack({ error: 'not possible!' });
+    }
+    broom.blocked = user;
+    await broom.save();
+    io.to(room.name).emit('After Blocking Room', { room: broom._id, user: user });
+  })
+
+  socket.on('UnBlock User', async ({ room, user }, ack) => {
+    const broom = await Room.findById(room._id);
+    if (broom.category !== 'oto') {
+      return ack({ error: 'not possible!' });
+    }
+    if (broom.blocked !== user) {
+      return ack({ error: 'Access Denied!' });
+    }
+
+    broom.blocked = null;
+    await broom.save();
+    io.to(room.name).emit('After UnBlocking Room', { room: broom._id });
   })
 
   socket.on('disconnect', () => {

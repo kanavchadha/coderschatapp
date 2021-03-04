@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getRooms, updateRoom, deleteRoom } from '../../../../_actions/chat_actions';
+import { getRooms, addRoom, updateRoom, deleteRoom } from '../../../../_actions/chat_actions';
 import RoomThread from './RoomThread';
 import axios from 'axios';
-import { Drawer, Button, Spin, Image, List, Avatar, message, Modal, Popconfirm, Input, Tooltip, Empty } from 'antd';
-import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone, CloseOutlined } from '@ant-design/icons';
+import { Drawer, Button, Spin, Image, List, Avatar, message, Modal, Popconfirm, Input, Alert, Tooltip, Tabs, Empty } from 'antd';
+import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone, CloseOutlined, CommentOutlined, UserOutlined, MessageTwoTone, StopOutlined } from '@ant-design/icons';
 import { CHAT_SERVER } from '../../../Config';
 // import { deleteRoom } from '../../../_actions/chat_actions';
 const { Search } = Input;
+const { TabPane } = Tabs;
 
 function RoomsArea(props) {
-    const { currRoom, setCurrRoom, currUserId, currUserName, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, socket } = props;
+    const { currRoom, setCurrRoom, currUserId, currUserName, currUserAvatar, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, socket } = props;
     const [loading, setLoading] = useState(true);
-    // const [rooms, setRooms] = useState([]);
+    const [userContacts, setContacts] = useState([]);
     const [editRoomForm, setEditRoomForm] = useState({ name: '', logo: '', description: '' });
     const [showForm, setShowForm] = useState(false);
     const [newMemberEmail, setNewMemberEmail] = useState('');
@@ -32,12 +33,21 @@ function RoomsArea(props) {
             setLoading(false);
         });
 
+        axios.get(CHAT_SERVER + '/getContacts').then(res => {
+            setContacts(res.data);
+        })
+
     }, [])
 
     const showCurrRoom = (roomId) => {
         if (!rooms) return;
         const cr = rooms.find(r => r._id === roomId);
-        socket.emit('disjoin-room',{name: currUserId, room: currRoom.name, newRoom: cr.name});
+        if (!cr) {
+            console.log('no room detected!', roomId)
+            console.log('after creation of oto', rooms);
+            return;
+        }
+        socket.emit('disjoin-room', { name: currUserId, room: currRoom.name, newRoom: cr.name });
         setCurrRoom(cr);
         // console.log(currRoom);
         joinRoom(cr.name);
@@ -91,44 +101,155 @@ function RoomsArea(props) {
             member: newMemberEmail,
             senderId: currUserId,
             senderName: currUserName
-        },(err)=>{
+        }, (err) => {
             message.error(err);
         });
     }
 
-    const leaveRoom = ()=>{
+    const leaveRoom = () => {
         if (!currUserId) return;
         if (!currRoom) return;
-        socket.emit('Leave Room',{currRoom, currUserId, currUserName},(err)=>{
+        socket.emit('Leave Room', { currRoom, currUserId, currUserName }, (err) => {
             message.error(err);
         });
     }
 
-    const isOnline = (user)=>{
+    const isOnline = (user) => {
         if (!currRoom || !currRoom.onlineUsers) return false;
         const online = currRoom.onlineUsers.find(u => u.username === user);
-        if(online) return true;
+        if (online) return true;
         return false;
+    }
+
+    const startOneChatRoom = (chatUser) => {
+        const roomData = {
+            fuser: currUserName,
+            suser: chatUser.name,
+            fuid: currUserId,
+            suid: chatUser._id,
+            logo1: currUserAvatar,
+            logo2: chatUser.image
+        }
+        socket.emit('Create OTO Room', roomData, (res) => {
+            if (res.error) {
+                message.error(res.error);
+            } else {
+                console.log(res.room);
+                dispatch(getRooms());
+                socket.emit('disjoin-room', { name: currUserId, room: currRoom.name, newRoom: res.room.name });
+                setCurrRoom(res.room);
+                joinRoom(res.room.name);
+                getChats(res.room._id);
+                setShowRooms();
+            }
+        })
+    }
+
+    const addToContacts = (email) => {
+        axios.post(`${CHAT_SERVER}/addMyContacts`, { member: email }).then(res => {
+            setContacts(uc => uc.concat(res.data));
+            message.success('User Added in Contact List Successfully.');
+        }).catch(err => {
+            message.error(err.message);
+        });
+    }
+
+    const isPresentInContact = () => {
+        let email = currRoom.members[0].member.name === currUserName ? currRoom.members[1].member.email : currRoom.members[0].member.email
+        const userInd = userContacts.findIndex(u => u.email === email);
+        return userInd >= 0 ? true : false;
+    }
+
+    const blockUser = () => {
+        socket.emit('Block User', { room: currRoom, user: currUserId }, (res) => {
+            if (res.error) {
+                return message.error(res.error);
+            }
+            message.success('User Blocked!');
+        });
+    }
+    const unblockUser = () => {
+        socket.emit('UnBlock User', { room: currRoom, user: currUserId }, (res) => {
+            if (res.error) {
+                return message.error(res.error);
+            }
+            message.success('User UnBlocked!');
+        });
+    }
+
+    const canUnBlock = () => {
+        if (currRoom.blocked && currRoom.blocked === currUserId) {
+            return true;
+        }
+        return false;
+    }
+
+    const printRoomHandler = (room) => {
+        if (room.category === 'group') return false;
+        const names = room.name.split('#');
+        const logos = room.logo.split('#');
+        let dName = names[0];
+        let dLogo = logos[0];
+        if (currUserName !== names[1]) {
+            dName = names[1];
+            dLogo = logos[1];
+        }
+        return { name: dName, logo: dLogo };
     }
 
     return (
         <React.Fragment>
             <div className={`sidebar ${showRooms && 'toggleDrawer'} `}>
                 <div className="sidebar__header">
-                    <h2>My Rooms</h2>
-                    <Button className="mobileview" onClick={setShowRooms} icon={<CloseOutlined /> } shape="circle" />
+                    <h2>{currUserName}</h2>
+                    <Button className="mobileview" onClick={setShowRooms} icon={<CloseOutlined />} shape="circle" />
                 </div>
-                <div className="sidebar__body">
-                    {loading ? <Spin /> :
-                        <div className="allRooms">
-                            {rooms ? rooms.length===0 ? <Empty style={{marginTop: '25px'}} /> : rooms.map(r => <RoomThread key={r._id} name={r.name} logo={r.logo} selectedRoom={currRoom ? currRoom.name : ''} showRoomInfo={() => showCurrRoom(r._id)} />) : ''}
+                <Tabs defaultActiveKey="1" id="chatsData">
+                    <TabPane
+                        tab={
+                            <b> <CommentOutlined /> My Chats</b>
+                        }
+                        key="1"
+                    >
+                        <div className="sidebar__body">
+                            {loading ? <Spin /> :
+                                <div className="allRooms">
+                                    {rooms ? rooms.length === 0 ? <Empty style={{ marginTop: '25px' }} /> :
+                                        rooms.map(r => <RoomThread key={r._id} name={r.name} logo={r.logo} category={r.category}
+                                            currUserName={currUserName} selectedRoom={currRoom ? currRoom.name : ''}
+                                            showRoomInfo={() => showCurrRoom(r._id)} />) : ''
+                                    }
+                                </div>
+                            }
                         </div>
-                    }
-                </div>
+                    </TabPane>
+                    <TabPane
+                        tab={
+                            <b> <UserOutlined /> My Contacts</b>
+                        }
+                        key="2"
+                    >
+                        <div className="sidebar__body">
+                            {loading ? <Spin /> :
+                                userContacts && userContacts.length === 0 ? <h3>You don't have Contacts</h3> :
+                                    userContacts.map(rm => <div className="roomThread" key={rm._id}>
+                                        <div>
+                                            <Avatar size='large' src={rm.image} />
+                                            <div>
+                                                <span className="txtHeading">{rm.name}</span> <br />
+                                                <span className="txtBody">{rm.email}</span>
+                                            </div>
+                                        </div>
+                                        <Button icon={<MessageTwoTone />} shape="circle" onClick={() => startOneChatRoom(rm)} />
+                                    </div>)
+                            }
+                        </div>
+                    </TabPane>
+                </Tabs>
             </div>
 
             <Drawer
-                title={currRoom && currRoom.name}
+                title={currRoom && printRoomHandler(currRoom) ? printRoomHandler(currRoom).name : currRoom.name}
                 width={348}
                 placement="left"
                 closable={true}
@@ -165,27 +286,54 @@ function RoomsArea(props) {
                 }
             >
                 {currRoom && <React.Fragment>
-                    <Image height={200} src={currRoom.logo} />
+                    <Image height={200} width='100%' src={printRoomHandler(currRoom) ? printRoomHandler(currRoom).logo : currRoom.logo} />
                     <h5 style={{ marginTop: '6px' }}>{currRoom.description}</h5>
-                    <List
-                        itemLayout="horizontal"
-                        dataSource={currRoom.members}
-                        renderItem={rm => (
-                            <List.Item>
-                                <List.Item.Meta
-                                    avatar={<Avatar src={rm.member.image} />}
-                                    title={
-                                        <div className="membersList">
-                                            <span>{rm.member.name} {isOnline(rm.member.email) && <CheckCircleTwoTone />} </span>
-                                            <span>{rm.role===1?' ~ admin':''}</span>
-                                        </div>
-                                    }
-                                    description={rm.member.email}
-                                />
-                            </List.Item>
-                        )}
-                    />
-                    <Button icon={<LogoutOutlined />} onClick={leaveRoom} type="primary" style={{marginTop: '20px'}} danger block> Leave Room </Button>
+                    {currRoom.category === 'group' ? <div>
+                        <List
+                            itemLayout="horizontal"
+                            dataSource={currRoom.members}
+                            renderItem={rm => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                        avatar={<Avatar src={rm.member.image} />}
+                                        title={
+                                            <div className="membersList">
+                                                <span>{rm.member.name} {isOnline(rm.member.email) && <CheckCircleTwoTone />} </span>
+                                                <span>{rm.role === 1 ? ' ~ admin' : ''}</span>
+                                            </div>
+                                        }
+                                        description={rm.member.email}
+                                    />
+                                </List.Item>
+                            )}
+                        />
+                        <Button icon={<LogoutOutlined />} onClick={leaveRoom} type="primary" style={{ marginTop: '20px' }} danger block> Leave Room </Button>
+                    </div> : currRoom.members.length == 2 && <div>
+                        <List
+                            itemLayout="horizontal"
+                            dataSource={currRoom.members.filter(m => m.member._id !== currUserId)}
+                            renderItem={rm => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                        avatar={<Avatar src={rm.member.image} />}
+                                        title={
+                                            <div className="membersList">
+                                                <span>{rm.member.name} {isOnline(rm.member.email) && <CheckCircleTwoTone />} </span>
+                                            </div>
+                                        }
+                                        description={rm.member.email}
+                                    />
+                                </List.Item>
+                            )}
+                        />
+                        {!currRoom.blocked ?
+                            <Button icon={<StopOutlined />} onClick={blockUser} type="primary" style={{ marginTop: '20px' }} danger block> Block User </Button> :
+                            !canUnBlock() ? <Alert message="You are Blocked!" type="error" showIcon /> :
+                                <Button icon={<StopOutlined />} onClick={unblockUser} type="primary" style={{ marginTop: '20px' }} danger block> UnBlock User </Button>
+                        }
+                        {!isPresentInContact() && <Button icon={<UserAddOutlined />} onClick={() => addToContacts(currRoom.members[0].member.name === currUserName ? currRoom.members[1].member.email : currRoom.members[0].member.email)} type="primary" style={{ marginTop: '20px' }} block> Add To Contacts </Button>}
+                    </div>
+                    }
                 </React.Fragment>
                 }
             </Drawer>

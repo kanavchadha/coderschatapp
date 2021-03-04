@@ -3,6 +3,7 @@ import {
     GET_ROOMS,
     AFTER_POST_MESSAGE,
     AFTER_DELETE_MESSAGE,
+    ADD_ROOM,
     UPDATE_ROOM,
     DELETE_ROOM,
     ADD_MEMBER,
@@ -16,6 +17,11 @@ export default function (state = { rooms: {}, chats: [], displayOP: false }, act
             return { ...state, rooms: action.payload }
         case GET_CHATS:
             return { ...state, chats: action.payload }
+        case ADD_ROOM:
+            return {
+                ...state,
+                rooms: state.rooms.concat(action.payload)
+            }
         case UPDATE_ROOM:
             return {
                 ...state,
@@ -56,7 +62,7 @@ export default function (state = { rooms: {}, chats: [], displayOP: false }, act
             const Room = state.rooms.find(cr => cr._id === action.payload.room._id);
             let mebrsArr = [...Room.members];
             if (Room) {
-                mebrsArr = mebrsArr.filter((m)=>m.member._id !== action.payload.userId)
+                mebrsArr = mebrsArr.filter((m) => m.member._id !== action.payload.userId)
             }
             return {
                 ...state,

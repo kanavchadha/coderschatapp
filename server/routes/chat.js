@@ -29,6 +29,15 @@ router.get("/getRooms", auth, (req, res) => {
   })
 });
 
+router.get("/getContacts", auth, async (req, res) => {
+  try {
+    const userContacts = await User.findById(req.user._id).populate('myContacts', '_id name image email');
+    res.status(200).send(userContacts.myContacts);
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+});
+
 router.get("/getChats", async (req, res) => {
   await Chat.find({ room: req.query.room })
     .populate("sender")
@@ -104,6 +113,22 @@ router.post("/deleteRoom", auth, async (req, res) => {
     res.send({ message: 'Room Deleted Successfully!', _id: roomId });
   } catch (err) {
     return res.status(500).send({ error: err.message });
+  }
+})
+
+router.post("/addMyContacts", auth, async (req, res) => {
+  try {
+    const member = req.body.member;
+    const newContact = await User.findOne({ email: member });
+    if (!newContact) {
+      return res.status(400).send({ error: 'Sorry! this person is not using this app.' });
+    }
+    req.user.myContacts.push(newContact._id);
+    await req.user.save();
+    return res.send({ name: newContact.name, image: newContact.image, _id: newContact._id, email: newContact.email });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).send({ error: error.message });
   }
 })
 
