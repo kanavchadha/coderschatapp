@@ -268,6 +268,20 @@ io.on("connection", socket => {
     io.to(room.name).emit('After UnBlocking Room', { room: broom._id });
   })
 
+  socket.on('New Story Added',async ({user})=>{
+    try{
+      const curruser = await User.findById(user).populate('myContacts', 'email');
+      curruser.myContacts.forEach(u => {
+        let cu = getUserByEmail(u.email);
+        if(cu){
+          io.to(cu.id).emit('Show New Story');
+        }
+      });
+    } catch(err){
+      console.log(err.message);
+    }
+  })
+
   socket.on('disconnect', () => {
     console.log('disconnected', socket.id);
     const user = removeUser(socket.id);

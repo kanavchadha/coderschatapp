@@ -1,22 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getRooms, addRoom, updateRoom, deleteRoom } from '../../../../_actions/chat_actions';
+import { getRooms, updateRoom, deleteRoom } from '../../../../_actions/chat_actions';
 import RoomThread from './RoomThread';
 import axios from 'axios';
-import { Drawer, Button, Spin, Image, List, Avatar, message, Modal, Popconfirm, Input, Alert, Tooltip, Tabs, Empty } from 'antd';
-import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone, CloseOutlined, CommentOutlined, UserOutlined, MessageTwoTone, StopOutlined } from '@ant-design/icons';
+import moment from "moment";
+import { Drawer, Button, Spin, Image, List, Avatar, message, Modal, Popconfirm, Input, Alert, Tooltip, Tabs, Empty, Upload } from 'antd';
+import { DeleteFilled, EditFilled, UserAddOutlined, InfoCircleOutlined, LogoutOutlined, CheckCircleTwoTone, CloseOutlined, CommentOutlined, UserOutlined, MessageTwoTone, StopOutlined, PlusOutlined, FireOutlined, EyeOutlined } from '@ant-design/icons';
 import { CHAT_SERVER } from '../../../Config';
+import Status from '../Status/Status';
 // import { deleteRoom } from '../../../_actions/chat_actions';
 const { Search } = Input;
 const { TabPane } = Tabs;
 
 function RoomsArea(props) {
-    const { currRoom, setCurrRoom, currUserId, currUserName, currUserAvatar, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, socket } = props;
+    const { currRoom, setCurrRoom, currUserId, currUserName, currUserAvatar, currUserStatus, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, stories, setStories, socket } = props;
     const [loading, setLoading] = useState(true);
     const [userContacts, setContacts] = useState([]);
-    const [editRoomForm, setEditRoomForm] = useState({ name: '', logo: '', description: '' });
     const [showForm, setShowForm] = useState(false);
+    const [editRoomForm, setEditRoomForm] = useState({ name: '', logo: '', description: '' });
     const [newMemberEmail, setNewMemberEmail] = useState('');
+    const [storyForm, setStoryForm] = useState(false);
+    const [storyData, setStoryData] = useState({ title: '', files: [] });
+    const [storyPreview, setStoryPreview] = useState([]);
+    const [myStory, setMyStory] = useState(false);
+    const [showStory, setShowStory] = useState(false);
+    const [currStory, setCurrStory] = useState([]);
 
     const rooms = useSelector(state => state.chat.rooms);
     const dispatch = useDispatch();
@@ -36,8 +44,16 @@ function RoomsArea(props) {
         axios.get(CHAT_SERVER + '/getContacts').then(res => {
             setContacts(res.data);
         })
+        setStories();
 
     }, [])
+
+    useEffect(() => {
+        if (currUserStatus && new Date(currUserStatus).getTime() > Date.now() - 24 * 60 * 60 * 1000) {
+            setMyStory(true);
+        }
+        console.log(myStory);
+    }, [currUserStatus])
 
     const showCurrRoom = (roomId) => {
         if (!rooms) return;
@@ -176,14 +192,12 @@ function RoomsArea(props) {
             message.success('User UnBlocked!');
         });
     }
-
     const canUnBlock = () => {
         if (currRoom.blocked && currRoom.blocked === currUserId) {
             return true;
         }
         return false;
     }
-
     const printRoomHandler = (room) => {
         if (room.category === 'group') return false;
         const names = room.name.split('#');
@@ -197,18 +211,63 @@ function RoomsArea(props) {
         return { name: dName, logo: dLogo };
     }
 
+    function getBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+    const addNewStory = () => {
+        const fileList = storyData.files;
+        console.log(storyPreview, fileList);
+        const formData = new FormData();
+        fileList.forEach(file => {
+            formData.append('stories', file);
+        });
+        formData.append('caption', storyData.title);
+        const config = {
+            header: { 'content-type': 'multipart/form-data' }
+        }
+        axios.post(CHAT_SERVER + '/addStory', formData, config).then(res => {
+            if (res.data.error) {
+                message.error(res.data.error);
+            } else {
+                setMyStory(true);
+                socket.emit('New Story Added', { user: currUserId });
+                setStoryData({ title: '', files: [] });
+                setStoryPreview([]);
+            }
+            setStoryForm(false);
+        })
+    }
+    const showUserStory = (uid) => {
+        axios.get(CHAT_SERVER + '/userStory/' + uid).then(res => {
+            if (res.data.error) {
+                message.error(res.data.error);
+            } else {
+                const ustories = res.data.stories.map(st => ({ url: st.url, type: st.type, header: { heading: st.caption, subheading: moment(st.createdAt).format('HH:mm') } }))
+                console.log(ustories);
+                setCurrStory([...ustories]);
+                setShowStory(true);
+            }
+        })
+    }
+
     return (
         <React.Fragment>
             <div className={`sidebar ${showRooms && 'toggleDrawer'} `}>
                 <div className="sidebar__header">
-                    <h2>{currUserName}</h2>
+                    <div>
+                        <Avatar src={currUserAvatar} size="large" />
+                        <span style={{ marginLeft: '10px', fontWeight: 'bold', color: 'white', fontSize: '25px'}}>{currUserName}</span>
+                    </div>
                     <Button className="mobileview" onClick={setShowRooms} icon={<CloseOutlined />} shape="circle" />
                 </div>
                 <Tabs defaultActiveKey="1" id="chatsData">
                     <TabPane
-                        tab={
-                            <b> <CommentOutlined /> My Chats</b>
-                        }
+                        tab={<b> <CommentOutlined /> My Chats</b>}
                         key="1"
                     >
                         <div className="sidebar__body">
@@ -224,9 +283,7 @@ function RoomsArea(props) {
                         </div>
                     </TabPane>
                     <TabPane
-                        tab={
-                            <b> <UserOutlined /> My Contacts</b>
-                        }
+                        tab={<b> <UserOutlined /> My Contacts</b>}
                         key="2"
                     >
                         <div className="sidebar__body">
@@ -243,6 +300,30 @@ function RoomsArea(props) {
                                         <Button icon={<MessageTwoTone />} shape="circle" onClick={() => startOneChatRoom(rm)} />
                                     </div>)
                             }
+                        </div>
+                    </TabPane>
+                    <TabPane
+                        tab={<b> <FireOutlined /> Stories </b>}
+                        key="3"
+                    >
+                        <div className="sidebar__body">
+                            <div className="sideBut"><Button icon={<PlusOutlined />} shape="round" type="primary" onClick={() => setStoryForm(true)} style={{ marginBottom: '5px' }}> Add Your Story </Button></div>
+                            {loading ? <Spin /> : <div>
+                                {myStory ? <div className="roomThread">
+                                    <div> <Avatar size='large' src={currUserAvatar} />
+                                        <div className="txtHeading"> <span className="txtHeading">{currUserName}</span> <br /> <span className="txtBody">{moment(currUserStatus || new Date()).format('HH:mm a')}</span> </div>
+                                    </div>
+                                    <Button icon={<EyeOutlined />} onClick={() => showUserStory(currUserId)} shape="circle" type="primary" />
+                                </div> : <h3> Add You Story Now!</h3>}
+                                {stories && stories.length !== 0 && stories.map(st =>
+                                    <div className="roomThread" key={st.id}>
+                                        <div> <Avatar size='large' src={st.image} />
+                                            <div className="txtHeading"> <span className="txtHeading">{st.name}</span> <br /> <span className="txtBody">{moment(st.time).format('HH:mm a')}</span> </div>
+                                        </div>
+                                        <Button icon={<EyeOutlined />} onClick={() => showUserStory(st.id)} shape="circle" type="primary" />
+                                    </div>)}
+                            </div>}
+
                         </div>
                     </TabPane>
                 </Tabs>
@@ -337,6 +418,40 @@ function RoomsArea(props) {
                 </React.Fragment>
                 }
             </Drawer>
+
+            { currStory && currStory.length !== 0 && <Status stories={currStory} showStory={showStory} onClose={() => { setShowStory(false); setCurrStory([]) }} />}
+
+            <Modal visible={storyForm} onCancel={() => setStoryForm(false)} onOk={addNewStory}>
+                <input type="text" placeholder="Caption..." value={storyData.title} onChange={(event) => {
+                    const c = event.target.value;
+                    setStoryData(sd => ({ ...sd, title: c }))
+                }} className="room-input" required />
+                <Upload
+                    onRemove={file => {
+                        setStoryData(state => {
+                            const index = state.files.findIndex(f => { return f.name === file.name });
+                            console.log("removing...", index);
+                            const newFileList = [...state.files];
+                            if (index >= 0) {
+                                newFileList.splice(index, 1);
+                                console.log(newFileList);
+                            }
+                            return { ...state, files: newFileList }
+                        });
+                    }}
+                    beforeUpload={file => {
+                        setStoryData(sd => ({ ...sd, files: sd.files.concat(file) }))
+                        return false;
+                    }}
+                    accept='image/*,video/*'
+                    listType="picture-card"
+                    fileList={storyPreview}
+                    previewFile={(file) => getBase64(file)}
+                    onChange={({ fileList }) => setStoryPreview(fileList)}
+                >
+                    {storyData.files.length >= 3 ? null : <div> <PlusOutlined /> <div style={{ marginTop: 8 }}>Upload</div> </div>}
+                </Upload>
+            </Modal>
 
             <Modal title="Update Room" visible={showForm} onOk={roomEditHandler} onCancel={() => setShowForm(false)}>
                 <input type="text" id="name" placeholder="Name of Room" value={editRoomForm.name} onChange={(event) => {

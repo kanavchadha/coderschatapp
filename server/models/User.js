@@ -34,6 +34,7 @@ const userSchema = mongoose.Schema({
     myContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     myRooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }],
     myBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
+    status: {type: Date, default: null},
     image: String,
     token: {
         type: String,

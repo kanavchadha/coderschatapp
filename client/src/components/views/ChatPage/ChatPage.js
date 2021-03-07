@@ -8,10 +8,10 @@ import ChatCard from "./Sections/ChatCard"
 import RoomArea from "./Sections/RoomsArea"
 import Dropzone from 'react-dropzone';
 import Axios from 'axios';
+import { CHAT_SERVER } from '../../Config';
 
 import { Form, Input, Button, BackTop, message, Drawer, Select, Alert, notification, Spin, Avatar, Dropdown, Menu, Affix } from 'antd';
-import { MessageOutlined, UploadOutlined, SmileOutlined, SendOutlined, PlayCircleOutlined, EllipsisOutlined, ArrowLeftOutlined, SettingOutlined, TeamOutlined, CloseOutlined } from '@ant-design/icons';
-import { FaCode } from "react-icons/fa";
+import { MessageOutlined, UploadOutlined, SmileOutlined, SendOutlined, PlayCircleOutlined, EllipsisOutlined, ArrowLeftOutlined, SettingOutlined, TeamOutlined, CodeOutlined } from '@ant-design/icons';
 import 'emoji-mart/css/emoji-mart.css'
 import { Picker } from 'emoji-mart'
 import AceEditor from "react-ace";
@@ -28,6 +28,7 @@ export class ChatPage extends Component {
     state = {
         currRoom: '',
         showRooms: false,
+        stories: [],
         showCurrRoomInfo: false,
         chatMessage: "",
         showEmojis: false,
@@ -103,7 +104,7 @@ export class ChatPage extends Component {
 
         this.socket.on('After Blocking Room', data => {
             this.props.dispatch(getRooms());
-            if(this.state.currRoom._id === data.room.toString()){
+            if (this.state.currRoom._id === data.room.toString()) {
                 this.setState(prevState => {
                     return {
                         currRoom: {
@@ -117,7 +118,7 @@ export class ChatPage extends Component {
 
         this.socket.on('After UnBlocking Room', data => {
             this.props.dispatch(getRooms());
-            if(this.state.currRoom._id === data.room){
+            if (this.state.currRoom._id === data.room) {
                 this.setState(prevState => {
                     return {
                         currRoom: {
@@ -127,6 +128,10 @@ export class ChatPage extends Component {
                     }
                 })
             }
+        })
+
+        this.socket.on('Show New Story', data => {
+            this.fetchAllStories();
         })
 
         window.addEventListener('beforeunload', this.disconnectUser);
@@ -151,6 +156,7 @@ export class ChatPage extends Component {
     }
 
     joinCurrRoom = (room) => {
+        if (!this.props.user.userData) return;
         this.socket.emit('join-room', {
             name: this.props.user.userData.name,
             room: room,
@@ -207,6 +213,17 @@ export class ChatPage extends Component {
         }
     }
 
+    fetchAllStories = () => {
+        Axios.get(CHAT_SERVER+'/myContactsStories').then(res => {
+            if (res.data.error) {
+                message.error(res.data.error);
+            } else {
+                console.log(res.data);
+                this.setState({stories: res.data});
+            }
+        })
+    }
+
     hanleSearchChange = (e) => {
         this.setState({
             chatMessage: e.target.value
@@ -224,7 +241,7 @@ export class ChatPage extends Component {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error('Please Log in first');
         }
-        if(this.state.currRoom && this.state.currRoom.blocked){
+        if (this.state.currRoom && this.state.currRoom.blocked) {
             return message.error("User Blocked! You Can't send Message");
         }
 
@@ -267,7 +284,7 @@ export class ChatPage extends Component {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error("Please Login First!");
         }
-        if(this.state.currRoom && this.state.currRoom.blocked){
+        if (this.state.currRoom && this.state.currRoom.blocked) {
             return message.error("User Blocked! You Can't send Message");
         }
 
@@ -297,7 +314,7 @@ export class ChatPage extends Component {
         if (this.props.user.userData && !this.props.user.userData.isAuth) {
             return message.error("Please Login First!");
         }
-        if(this.state.currRoom && this.state.currRoom.blocked){
+        if (this.state.currRoom && this.state.currRoom.blocked) {
             return message.error("User Blocked! You Can't send Message");
         }
 
@@ -393,12 +410,15 @@ export class ChatPage extends Component {
                     currUserId={this.props.user.userData && this.props.user.userData._id}
                     currUserName={this.props.user.userData && this.props.user.userData.name}
                     currUserAvatar={this.props.user.userData && this.props.user.userData.image}
+                    currUserStatus={this.props.user.userData && this.props.user.userData.status}
                     showRooms={this.state.showRooms}
                     setShowRooms={() => { this.setState({ showRooms: false }) }}
                     showRoomInfo={this.state.showCurrRoomInfo}
                     setShowRoomInfo={(v) => { this.setState({ showCurrRoomInfo: v }) }}
                     joinRoom={this.joinCurrRoom}
                     getChats={this.getRoomChats}
+                    stories={this.state.stories}
+                    setStories={this.fetchAllStories}
                     socket={this.socket}
                 />
 
@@ -430,7 +450,7 @@ export class ChatPage extends Component {
                         <Dropdown overlay={
                             <Menu>
                                 <Menu.Item>
-                                    <Button onClick={() => { this.setState({ codeDrawer: true }) }}> <FaCode /> </Button>
+                                    <Button onClick={() => { this.setState({ codeDrawer: true }) }} icon={<CodeOutlined />} />
                                 </Menu.Item>
                                 <Menu.Item>
                                     <Dropzone onDrop={this.onDrop}>
@@ -459,7 +479,7 @@ export class ChatPage extends Component {
                             value={this.state.chatMessage}
                             onChange={this.hanleSearchChange}
                         />
-                        <Button type="primary" onClick={this.submitChatMessage} htmlType="submit" size="large" shape="round" disabled={!this.state.chatMessage || (this.state.currRoom&&this.state.currRoom.blocked)}>
+                        <Button type="primary" onClick={this.submitChatMessage} htmlType="submit" size="large" shape="round" disabled={!this.state.chatMessage || (this.state.currRoom && this.state.currRoom.blocked)}>
                             <SendOutlined />
                         </Button>
                     </Form>
@@ -476,7 +496,7 @@ export class ChatPage extends Component {
                                 <Option value="java">Java</Option>
                             </Select>
                             <button className="runCode" onClick={this.runCodeSnippet} disabled={!this.state.codeMessage}> Run {this.state.execLoading ? <Spin size="small" /> : <PlayCircleOutlined />} </button>
-                            <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage || (this.state.currRoom&&this.state.currRoom.blocked)}>Send <SendOutlined /></Button>
+                            <Button onClick={this.sendCodeSnippet} type="primary" disabled={!this.state.codeMessage || (this.state.currRoom && this.state.currRoom.blocked)}>Send <SendOutlined /></Button>
                         </div>} >
                     <AceEditor
                         mode={this.state.progLanguage}

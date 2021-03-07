@@ -3,9 +3,35 @@ const router = express.Router();
 const { Chat } = require("../models/Chat");
 const { Room } = require("../models/Room");
 const { User } = require("../models/User");
+const { Story } = require("../models/Story");
 const request = require("request");
 const config = require("../config/key");
 const { auth } = require("../middleware/auth");
+const multer = require("multer");
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: 'student-dev',
+  api_key: config.CLOUDINARY_KEY,
+  api_secret: config.CLOUDINARY_SECRET
+});
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '../uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}_${file.originalname}`)
+  }
+})
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype !== '.jpeg' && file.mimetype !== '.jpg' && file.mimetype !== '.png' && file.mimetype !== '.mp4') {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+  cb(null, true)
+}
+const upload = multer({ storage: storage, fileFilter: fileFilter, limits: '10000000' });
 
 router.get("/getRooms", auth, (req, res) => {
   User.findById(req.user._id).populate('myRooms').exec((err, user) => {
@@ -129,6 +155,80 @@ router.post("/addMyContacts", auth, async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).send({ error: error.message });
+  }
+})
+
+router.post('/addStory', auth, upload.array('stories', 6), async (req, res) => {
+  try {
+    // console.log(req.files);
+    req.files.forEach(async (file) => {
+      try {
+        let category = 'image';
+        if (file.originalname.split('.')[1] === 'mp4') {
+          category = 'video';
+        }
+        let result = await cloudinary.uploader.upload(file.path, {
+          folder: "stories", resource_type: category
+        });
+        // console.log(result);
+        let newStory = new Story({
+          caption: req.body.caption,
+          url: result.secure_url,
+          publicId: result.public_id,
+          user: req.user._id,
+          category: category
+        })
+        await newStory.save();
+      } catch (err) {
+        console.log(err.message);
+        return res.json({ error: err.message });
+      }
+    })
+    req.user.status = Date.now();
+    await req.user.save();
+    return res.json({ success: true });
+  } catch (err) {
+    console.log(err.message);
+    return res.json({ error: err.message });
+  }
+})
+
+router.get("/myContactsStories", auth, async (req, res) => {
+  try {
+    const contactUsers = [];
+    let cu, stories = [];
+    req.user.myContacts.forEach(c => {
+      contactUsers.push(User.findById(c));
+    })
+    cu = await Promise.all(contactUsers);
+    cu.forEach(u => {
+      if (u.status && u.status > Date.now() - 24 * 60 * 60 * 1000) {
+        stories.push({ id: u._id, name: u.name, image: u.image, time: u.status });
+      }
+    })
+    // console.log(stories);
+    return res.send(stories);
+  } catch (err) {
+    console.log(err.message);
+    return res.json({ error: err.message });
+  }
+})
+
+router.get("/userStory/:id", auth, async (req, res) => {
+  try {
+    const ismyContact = req.user.myContacts.findIndex(u => u.toString() === req.params.id);
+    if (ismyContact >= 0 || req.params.id === req.user._id.toString()) {
+      const myStories = await Story.find({ user: req.params.id, createdAt: { $gt: Date.now() - 24 * 60 * 60 * 1000 } });
+      if (myStories && myStories.length > 0) {
+        return res.send({ stories: myStories });
+      }
+      return res.send({ stories: [] });
+    } else {
+      return res.json({ error: 'Access Denied!' });
+    }
+  } catch (err) {
+    console.log(err.message);
+    return res.json({ error: err.message });
   }
 })
 
