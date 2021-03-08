@@ -41,12 +41,12 @@ const def_stories = [
 const Status = (props) => {
     const {stories, showStory, onClose} = props;
     return (
-        <Modal className="story" title={null} visible={showStory} onCancel={onClose} footer={null} centered width={386}>
+        <Modal className="story" title={null} visible={showStory} onCancel={onClose} footer={null} centered width={360}>
             <Stories
                 stories={stories}
-                defaultInterval={1500}
-                width={386}
-                height={568}
+                defaultInterval={2000}
+                width={360}
+                height={576}
                 storyStyles={{
                     height: '100%',
                     width: '100%'

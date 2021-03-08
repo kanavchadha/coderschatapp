@@ -1,7 +1,8 @@
 import React from "react";
 import moment from 'moment';
-import { Comment, Tooltip, Avatar, Image, Button, Alert } from 'antd';
+import { Comment, Tooltip, Avatar, Image, Button } from 'antd';
 import { RestOutlined, PlayCircleOutlined, FileTextOutlined } from '@ant-design/icons';
+import InfoMsg from '../../../UI/infoMsg';
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-c_cpp";
 import "ace-builds/src-noconflict/mode-python";
@@ -15,7 +16,7 @@ const APP_DOMAIN = 'https://codingchatapp.herokuapp.com/';
 function ChatCard(props) {
     return ( 
         <React.Fragment>
-        {props.type === 'info' ? <Alert message={props.message+' '+ moment(props.createdAt.toString()).format('YYYY-MM-DD HH:mm:ss')} className="infoMsg" type="info" showIcon /> :
+        {props.type === 'info' ? <InfoMsg msg={props.message} time={moment(props.createdAt).format('YYYY-MM-DD HH:mm:ss')}  /> :
         <div className={`message ${props.currUserId && props.currUserId===props.sender._id&&'myMessage'}`}>
             <Comment
                 author={props.sender.name}
@@ -89,4 +90,3 @@ function ChatCard(props) {
 }
 
 export default ChatCard;
-
