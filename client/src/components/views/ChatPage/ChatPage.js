@@ -3,7 +3,7 @@ import io from "socket.io-client";
 // import { useHistory } from 'react-router-dom';
 import { connect } from "react-redux";
 import moment from "moment";
-import { getChats, afterPostMessage, afterDeleteMessage, addMember, getRooms, removeMember } from "../../../_actions/chat_actions"
+import { getChats, afterPostMessage, afterDeleteMessage, addMember, getRooms, removeMember, updateRoom, deleteRoom } from "../../../_actions/chat_actions"
 import ChatCard from "./Sections/ChatCard"
 import RoomArea from "./Sections/RoomsArea"
 import Dropzone from 'react-dropzone';
@@ -79,7 +79,7 @@ export class ChatPage extends Component {
                 if (await res.payload) {
                     if (res.payload.length !== 0) {
                         this.setState({ currRoom: res.payload[0] });
-                        this.joinCurrRoom(res.payload[0].name);
+                        this.joinCurrRoom(res.payload[0]._id);
                         this.getRoomChats(res.payload[0]._id);
                     }
                 }
@@ -89,6 +89,15 @@ export class ChatPage extends Component {
         this.socket.on('After Leaving Room', data => {
             this.props.dispatch(removeMember(data))
             this.removeMemberInRoom(data);
+        })
+
+        this.socket.on('After Updating Room', data => {
+            this.props.dispatch(updateRoom(data));
+            this.updateSetRoom(data);
+        })
+
+        this.socket.on('After Deleting Room', data => {
+            this.props.dispatch(deleteRoom(data));
         })
 
         this.socket.on('online-users in Room', (userList) => {
@@ -200,13 +209,29 @@ export class ChatPage extends Component {
         console.log(member);
         if (!this.state.currRoom) return;
         if (this.state.currRoom._id === member.room._id) {
-            let membArr = [...this.state.currRoom.members];
-            membArr = membArr.filter((m) => m.member._id !== member.userId)
+            let membArr = member.room.members; //[...this.state.currRoom.members];
+            // membArr = membArr.filter((m) => m.member._id !== member.userId)
             this.setState(prevState => {
                 return {
                     currRoom: {
                         ...prevState.currRoom,
                         members: membArr
+                    }
+                }
+            })
+        }
+    }
+
+    updateSetRoom = (data) => {
+        if (!this.state.currRoom) return;
+        if (this.state.currRoom._id === data._id) {
+            this.setState(prevState => {
+                return {
+                    currRoom: {
+                        ...prevState.currRoom,
+                        name: data.name,
+                        logo: data.logo,
+                        description: data.description
                     }
                 }
             })

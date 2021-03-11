@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar } from 'antd';
+import { Avatar, Badge } from 'antd';
 
 function RoomThread(props) {
     const printRoomHandler = (room)=>{
@@ -21,6 +21,7 @@ function RoomThread(props) {
                 <Avatar size="large" src={printRoomHandler({name: props.name, logo: props.logo, category: props.category})? printRoomHandler({name: props.name, logo: props.logo, category: props.category}).logo : props.logo} />
                 <h3 className="txtHeading">{printRoomHandler({name: props.name, logo: props.logo, category: props.category})? printRoomHandler({name: props.name, logo: props.logo, category: props.category}).name : props.name}</h3>
             </div>
+            <Badge count={5} style={{ backgroundColor: '#108ee9' }} className="site-badge-count-4" />
         </div>
     );
 }

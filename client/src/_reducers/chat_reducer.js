@@ -37,8 +37,10 @@ export default function (state = { rooms: {}, chats: [], displayOP: false }, act
 
         case ADD_MEMBER:
             const currRoom = state.rooms.find(cr => cr._id === action.payload._id);
-            const membArr = [...currRoom.members];
+            console.log(currRoom);
+            let membArr = [];
             if (currRoom) {
+                membArr = [...currRoom.members];
                 membArr.push({
                     role: action.payload.role,
                     member: {

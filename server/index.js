@@ -127,6 +127,50 @@ io.on("connection", socket => {
     }
   });
 
+  socket.on("Update Room", async ({ nroom, senderId }, ack) => {
+    try {
+      const room = await Room.findById(nroom._id);
+      if (!room) {
+        return ack({ error: 'Room Not Found!' });
+      }
+      const adminUser = room.members.find(m => m.member.toString() === senderId);
+      if (adminUser.role !== 1) {
+        return ack({ error: 'Access Denied!' });
+      }
+      if (!nroom.logo || !nroom.logo || !nroom.description) {
+        return ack({ error: 'All field are required!' });
+      }
+      room.name = nroom.name;
+      room.logo = nroom.logo;
+      room.description = nroom.description;
+      await room.save();
+      const eroom = room._id.toString();
+      io.to(eroom).emit('After Updating Room', { _id: room._id, name: room.name, logo: room.logo, description: room.description });
+    } catch (error) {
+      console.log(error.message);
+      return ack(error.message);
+    }
+  });
+
+  socket.on("Delete Room", async ({ proom, senderId }, ack) => {
+    try {
+      const room = await Room.findById(proom);
+      if (!room) {
+        return ack({ error: 'Room Not Found!' });
+      }
+      const adminUser = room.members.find(m => m.member.toString() === senderId);
+      if (adminUser.role !== 1) {
+        return ack({ error: 'Access Denied!' });
+      }
+      await room.remove();
+      const eroom = room._id.toString();
+      io.to(eroom).emit('After Deleting Room', { _id: room._id });
+    } catch (error) {
+      console.log(error.message);
+      return ack(error.message);
+    }
+  });
+
   socket.on("Add Member", async ({ room, member, senderId, senderName }, ack) => {
     try {
       const user = await User.findOne({ email: member });
@@ -149,13 +193,13 @@ io.on("connection", socket => {
           console.log(err.message);
           return ack(error.message);
         }
-        io.to(room.name).emit("Output Chat Message", doc);
+        io.to(room._id).emit("Output Chat Message", doc);
       });
 
-      io.to(room.name).emit('After Adding Member', { _id: room._id, email: user.email, name: user.name, image: user.image, userId: user._id, role: 0 });
+      io.to(room._id).emit('After Adding Member', { _id: room._id, email: user.email, name: user.name, image: user.image, userId: user._id, role: 0 });
       const addedUser = getUserByEmail(member);
       if (addedUser) {
-        io.to(addedUser.id).emit('Added In Room', {})
+        io.to(addedUser.id).emit('Added In Room', {});
       }
     } catch (error) {
       console.log(error.message);
@@ -171,18 +215,21 @@ io.on("connection", socket => {
       const isAdmin = currRoom.members.find(rm => rm.member._id === currUserId);
       if (isAdmin.role === 1) {
         const room = await Room.findById(currRoom._id);
-        if (room.members.length >= 2) {
-          room.members[1].role = 1;
-          await roomm.save();
+        for (let i = 0; i < room.members.length; i += 1) {
+          if (room.members[i].role === 0) {
+            room.members[i].role = 1;
+            break;
+          }
         }
+        await room.save();
       }
       Room.findByIdAndUpdate(currRoom._id, { $pull: { "members": { "member": currUserId } } }, { new: true }, (err, doc) => {
         if (err) {
-          return res.status(500).send(err.message);
+          return ack({ error: err.message });
         }
 
         socket.emit('Room Leaved', {});
-        socket.leave(currRoom.name);
+        socket.leave(currRoom._id);
         removeUser(socket.id);
 
         let chat = new Chat({ message: `${currUserName} leaved this room`, sender: currUserId, type: 'info', room: doc._id })
@@ -191,15 +238,19 @@ io.on("connection", socket => {
             console.log(err.message);
             return ack(error.message);
           }
-          io.to(currRoom.name).emit("Output Chat Message", msg);
+          io.to(currRoom._id).emit("Output Chat Message", msg);
         });
-
-        io.to(currRoom.name).emit('After Leaving Room', { room: doc, userId: currUserId, onlineUsers: getUsersInRoom(currRoom.name) });
+        doc.populate({ path: 'members.member', select: 'email _id name image' }, (err, upRoom) => {
+          if (err) {
+            return ack({ error: err.message });
+          }
+          io.to(currRoom._id).emit('After Leaving Room', { room: upRoom, userId: currUserId, onlineUsers: getUsersInRoom(currRoom._id) });
+        })
         // socket.broadcast.to(currRoom.name).emit()
       });
     } catch (error) {
       console.log(error.message);
-      return ack(error.message);
+      return ack({ error: error.message });
     }
   })
 
@@ -209,7 +260,7 @@ io.on("connection", socket => {
       const isPresent = await Room.findOne({ category: 'oto', 'members.member': { $all: [rd.fuid, rd.suid] } });
       // console.log(isPresent);
       if (isPresent) {
-        return ack({ present: true, roomId: isPresent._id });
+        return ack({ present: true, room: isPresent });
       }
       const rmembers = [{ member: rd.fuid, role: 0 }, { member: rd.suid, role: 0 }];
       const otoRoom = new Room({
@@ -228,7 +279,7 @@ io.on("connection", socket => {
       await user2.save();
       otoRoom.populate({
         path: 'members.member',
-        select: 'name email image'
+        select: '_id name email image'
       }, (err, room) => {
         if (err) {
           return ack({ error: err.message });
@@ -251,7 +302,7 @@ io.on("connection", socket => {
     }
     broom.blocked = user;
     await broom.save();
-    io.to(room.name).emit('After Blocking Room', { room: broom._id, user: user });
+    io.to(room._id).emit('After Blocking Room', { room: broom._id, user: user });
   })
 
   socket.on('UnBlock User', async ({ room, user }, ack) => {
@@ -265,19 +316,19 @@ io.on("connection", socket => {
 
     broom.blocked = null;
     await broom.save();
-    io.to(room.name).emit('After UnBlocking Room', { room: broom._id });
+    io.to(room._id).emit('After UnBlocking Room', { room: broom._id });
   })
 
-  socket.on('New Story Added',async ({user})=>{
-    try{
+  socket.on('New Story Added', async ({ user }) => {
+    try {
       const curruser = await User.findById(user).populate('myContacts', 'email');
       curruser.myContacts.forEach(u => {
         let cu = getUserByEmail(u.email);
-        if(cu){
+        if (cu) {
           io.to(cu.id).emit('Show New Story');
         }
       });
-    } catch(err){
+    } catch (err) {
       console.log(err.message);
     }
   })
@@ -290,7 +341,6 @@ io.on("connection", socket => {
       io.to(user.room).emit('online-users in Room', getUsersInRoom(user.room));
     }
   })
-
 })
 
 app.use('/uploads', express.static(path.join(__dirname, "..", 'uploads')));

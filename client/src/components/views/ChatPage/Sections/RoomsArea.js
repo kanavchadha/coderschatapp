@@ -34,7 +34,7 @@ function RoomsArea(props) {
             if (await res.payload) {
                 if (res.payload.length !== 0) {
                     setCurrRoom(res.payload[0]);
-                    joinRoom(res.payload[0].name);
+                    joinRoom(res.payload[0]._id);
                     getChats(res.payload[0]._id);
                 }
             }
@@ -63,10 +63,10 @@ function RoomsArea(props) {
             console.log('after creation of oto', rooms);
             return;
         }
-        socket.emit('disjoin-room', { name: currUserId, room: currRoom.name, newRoom: cr.name });
+        socket.emit('disjoin-room', { name: currUserId, room: currRoom._id, newRoom: cr._id });
         setCurrRoom(cr);
         // console.log(currRoom);
-        joinRoom(cr.name);
+        joinRoom(cr._id);
         getChats(cr._id);
         setShowRooms();
     }
@@ -86,28 +86,25 @@ function RoomsArea(props) {
     }
 
     const roomEditHandler = () => {
-        axios.post(`${CHAT_SERVER}/updateRoom`, editRoomForm).then(res => {
-            dispatch(updateRoom(editRoomForm));
-            message.success('Room Updated Successfully!');
-            setShowForm(false);
-            setCurrRoom({ ...currRoom, name: editRoomForm.name, logo: editRoomForm.logo, description: editRoomForm.description });
-            setShowRoomInfo(false);
-        }).catch(err => {
-            setShowForm(false);
+        // axios.post(`${CHAT_SERVER}/updateRoom`, editRoomForm)
+        socket.emit('Update Room', {nroom: editRoomForm, senderId: currUserId} ,err => {
             message.error('Failed! ' + err.message);
         });
+        dispatch(updateRoom(editRoomForm));
+        setCurrRoom({ ...currRoom, name: editRoomForm.name, logo: editRoomForm.logo, description: editRoomForm.description });
+        setShowForm(false);
+        setShowRoomInfo(false);
+        message.success('Room Updated Successfully!');
     }
 
     const roomDeleteHandler = () => {
         const roomId = currRoom._id;
-        axios.post(`${CHAT_SERVER}/deleteRoom`, { id: roomId }).then(res => {
-            dispatch(deleteRoom(roomId));
-            message.success('Room Deleted Successfully!');
-            setShowRoomInfo(false);
-        }).catch(err => {
+        socket.emit('Delete Room', {proom: roomId, senderId: currUserId}, err => {
             message.error('Failed! ' + err.message);
         });
-
+        dispatch(deleteRoom(roomId));
+        message.success('Room Deleted Successfully!');
+        setShowRoomInfo(false);
     }
 
     const addMemberHandler = () => {
@@ -152,9 +149,9 @@ function RoomsArea(props) {
             } else {
                 console.log(res.room);
                 dispatch(getRooms());
-                socket.emit('disjoin-room', { name: currUserId, room: currRoom.name, newRoom: res.room.name });
+                socket.emit('disjoin-room', { name: currUserId, room: currRoom._id, newRoom: res.room._id });
                 setCurrRoom(res.room);
-                joinRoom(res.room.name);
+                joinRoom(res.room._id);
                 getChats(res.room._id);
                 setShowRooms();
             }
@@ -261,7 +258,7 @@ function RoomsArea(props) {
                 <div className="sidebar__header">
                     <div>
                         <Avatar src={currUserAvatar} size="large" />
-                        <span style={{ marginLeft: '10px', fontWeight: 'bold', color: 'white', fontSize: '25px'}}>{currUserName}</span>
+                        <span style={{ marginLeft: '10px', fontWeight: 'bold', color: 'white', fontSize: '25px' }}>{currUserName}</span>
                     </div>
                     <Button className="mobileview" onClick={setShowRooms} icon={<CloseOutlined />} shape="circle" />
                 </div>
@@ -331,7 +328,7 @@ function RoomsArea(props) {
 
             <Drawer
                 title={currRoom && printRoomHandler(currRoom) ? printRoomHandler(currRoom).name : currRoom.name}
-                width={348}
+                width={350}
                 placement="left"
                 closable={true}
                 onClose={() => setShowRoomInfo(false)}

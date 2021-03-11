@@ -45,7 +45,7 @@ const Status = (props) => {
             <Stories
                 stories={stories}
                 defaultInterval={2000}
-                width={360}
+                width={356}
                 height={576}
                 storyStyles={{
                     height: '100%',

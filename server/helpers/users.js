@@ -10,11 +10,13 @@ const addUser = ({id,username,room})=>{
     });
 
     if(existingUser){
+        // console.log(users);
         return { user: existingUser};
     }
 
     const user = {id,username,room}
     users.push(user);
+    // console.log(users);
     
     return {user}
 }

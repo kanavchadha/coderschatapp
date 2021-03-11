@@ -41,7 +41,7 @@ router.get("/getRooms", auth, (req, res) => {
     }
     user.populate({
       path: 'myRooms.members.member',
-      select: 'name email image'
+      select: '_id name email image'
     },
       (err, urms) => {
         if (err) {
@@ -96,51 +96,6 @@ router.post("/createRoom", auth, async (req, res) => {
   }
 });
 
-router.post("/updateRoom", auth, async (req, res) => {
-  try {
-    const room = await Room.findById(req.body._id);
-    if (!room) {
-      return res.status(400).send({ error: 'Room Not Found!' });
-    }
-    const adminUser = room.members.find(m => m.member.toString() === req.user._id.toString())
-    if (adminUser.role !== 1) {
-      return res.status(400).send({ error: 'Access Denied!' });
-    }
-    if (!req.body.name || !req.body.logo || !req.body.description) {
-      return res.status(400).send({ error: 'All field are required!' });
-    }
-    room.name = req.body.name;
-    room.logo = req.body.logo;
-    room.description = req.body.description;
-    await room.save();
-    res.status(200).send({
-      _id: room._id,
-      name: room.name,
-      logo: room.logo,
-      description: room.description
-    });
-  } catch (err) {
-    return res.status(400).send({ error: err.message });
-  }
-});
-
-router.post("/deleteRoom", auth, async (req, res) => {
-  try {
-    const room = await Room.findById(req.body.id);
-    if (!room) {
-      return res.status(400).send({ error: 'Room Not Found!' });
-    }
-    const roomId = room._id;
-    const adminUser = room.members.find(m => m.member.toString() === req.user._id.toString())
-    if (adminUser.role !== 1) {
-      return res.status(400).send({ error: 'Access Denied!' });
-    }
-    await room.remove();
-    res.send({ message: 'Room Deleted Successfully!', _id: roomId });
-  } catch (err) {
-    return res.status(500).send({ error: err.message });
-  }
-})
 
 router.post("/addMyContacts", auth, async (req, res) => {
   try {
@@ -251,6 +206,52 @@ router.post("/executeCode", (req, res) => {
       return res.send(body);
     }
   });
+})
+
+router.post("/updateRoom", auth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.body._id);
+    if (!room) {
+      return res.status(400).send({ error: 'Room Not Found!' });
+    }
+    const adminUser = room.members.find(m => m.member.toString() === req.user._id.toString())
+    if (adminUser.role !== 1) {
+      return res.status(400).send({ error: 'Access Denied!' });
+    }
+    if (!req.body.name || !req.body.logo || !req.body.description) {
+      return res.status(400).send({ error: 'All field are required!' });
+    }
+    room.name = req.body.name;
+    room.logo = req.body.logo;
+    room.description = req.body.description;
+    await room.save();
+    res.status(200).send({
+      _id: room._id,
+      name: room.name,
+      logo: room.logo,
+      description: room.description
+    });
+  } catch (err) {
+    return res.status(400).send({ error: err.message });
+  }
+});
+
+router.post("/deleteRoom", auth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.body.id);
+    if (!room) {
+      return res.status(400).send({ error: 'Room Not Found!' });
+    }
+    const roomId = room._id;
+    const adminUser = room.members.find(m => m.member.toString() === req.user._id.toString())
+    if (adminUser.role !== 1) {
+      return res.status(400).send({ error: 'Access Denied!' });
+    }
+    await room.remove();
+    res.send({ message: 'Room Deleted Successfully!', _id: roomId });
+  } catch (err) {
+    return res.status(500).send({ error: err.message });
+  }
 })
 
 router.post("/removeMember", async (req, res) => {
