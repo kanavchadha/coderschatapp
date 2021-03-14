@@ -53,11 +53,24 @@ const getUsersInRoom = (room)=>{
     })
 }
 
+const getUsersNotInRoom = (room, members)=>{
+    const arr =  getUsersInRoom(room).map(u=>u.username);
+    const res = [];
+    members.forEach(rm=>{
+        if(arr.indexOf(rm.member.email) < 0){
+            res.push(rm.member.email);
+        }
+    })
+    // console.log(res);
+    return res;
+}
+
 module.exports = {
     addUser,
     updateUser,
     removeUser,
     getUserByEmail,
     getUser,
-    getUsersInRoom
+    getUsersInRoom,
+    getUsersNotInRoom,
 }

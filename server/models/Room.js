@@ -17,7 +17,8 @@ const roomSchema = mongoose.Schema({
             ref: 'User',
             required: [true, "User Not Found!"]
         },
-        role: { type: Number, default: 0 }
+        role: { type: Number, default: 0 },
+        joinDate: { type: Date, default: null }
     }],
     category: {
         type: String,

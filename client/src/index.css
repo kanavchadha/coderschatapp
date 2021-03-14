@@ -251,8 +251,7 @@ input{
 }
 /* .ant-alert */
 .infoMsg{
-  margin-left: auto;
-  margin-right: auto;
+  margin: 3px auto;
   max-width: 400px;
   display: flex;
   padding: 6px 2px;
@@ -296,6 +295,11 @@ input{
   left: 3px;
   bottom: 12px;
 }
+.unreadLabel{
+  background-color: whitesmoke;
+  padding: 5px 15px;
+  border-radius: 25px;
+}
 
 .bottomDrawer .ant-drawer-body{
   padding: 0px 10px;
@@ -311,7 +315,9 @@ input{
 .ant-comment-avatar{
   margin-right: 6px !important;
 }
-
+.ant-modal.story{
+  margin: 0 !important;
+}
 .story .ant-modal-body{
   padding: 0 !important;
 }
@@ -333,7 +339,19 @@ input{
 }
 
 .postPage {
-  min-height: 400px;
+  min-height: 100vh;
+  max-width: 80%;
+  margin: 2rem auto;
+}
+.postContent{
+  padding-bottom: 20px;
+}
+@media (max-width: 460px){
+  .postPage {
+    min-height: 100vh;
+    max-width: 95%;
+    margin: 2rem auto;
+  }
 }
 
 .titleIP{

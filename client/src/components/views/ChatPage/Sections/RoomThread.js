@@ -14,14 +14,13 @@ function RoomThread(props) {
         }
         return {name: dName, logo: dLogo};
     }
-
     return (
         <div className={`roomThread ${props.selectedRoom === props.name && 'selected'}`} onClick={props.showRoomInfo}>
             <div>
                 <Avatar size="large" src={printRoomHandler({name: props.name, logo: props.logo, category: props.category})? printRoomHandler({name: props.name, logo: props.logo, category: props.category}).logo : props.logo} />
                 <h3 className="txtHeading">{printRoomHandler({name: props.name, logo: props.logo, category: props.category})? printRoomHandler({name: props.name, logo: props.logo, category: props.category}).name : props.name}</h3>
             </div>
-            <Badge count={5} style={{ backgroundColor: '#108ee9' }} className="site-badge-count-4" />
+            {props.unReadMsgs && props.unReadMsgs[props.id] && <Badge count={props.unReadMsgs[props.id].length} style={{ backgroundColor: '#108ee9' }} className="site-badge-count-4" />}
         </div>
     );
 }

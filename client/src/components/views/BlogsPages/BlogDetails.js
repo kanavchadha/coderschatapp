@@ -25,7 +25,7 @@ const BlogDetailsPage = (props) => {
 
     if (post.author) {
         return (
-            <div className="postPage" style={{ width: '80%', margin: '3rem auto' }}>
+            <div className="postPage">
                 <Title level={1}>{post.title}</Title>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <h3>{post.author.name}`s Post</h3>
@@ -34,11 +34,11 @@ const BlogDetailsPage = (props) => {
                     </h4>
                 </div>
                 <div style={{ margin: '1rem auto' }}>
-                    {post.categories.map(c => <Tag color='geekblue'>{c.name}</Tag>)}
-                    {post.tags.map(t => <Tag color='volcano'>{t.name}</Tag>)}
+                    {post.categories.map(c => <Tag style={{margin: '3px'}} key={c._id} color='geekblue'>{c.name}</Tag>)}
+                    {post.tags.map(t => <Tag style={{margin: '3px'}}key={t._id}  color='volcano'>{t.name}</Tag>)}
                 </div>
                 <Divider />
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                <div className="postContent" dangerouslySetInnerHTML={{ __html: post.content }} />
             </div>
         )
     } else {

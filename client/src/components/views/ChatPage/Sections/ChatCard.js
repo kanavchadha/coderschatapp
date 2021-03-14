@@ -3,6 +3,7 @@ import moment from 'moment';
 import { Comment, Tooltip, Avatar, Image, Button } from 'antd';
 import { RestOutlined, PlayCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 import InfoMsg from '../../../UI/infoMsg';
+import UnreadMsgsLine from '../../../UI/unreadMsgsLine';
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-c_cpp";
 import "ace-builds/src-noconflict/mode-python";
@@ -14,8 +15,10 @@ import "ace-builds/src-noconflict/ext-language_tools"
 const APP_DOMAIN = 'https://codingchatapp.herokuapp.com/';
 // const APP_DOMAIN = 'http://localhost:5000/';
 function ChatCard(props) {
+    
     return ( 
         <React.Fragment>
+        { props.unReadMsg && props.unReadMsg.start === props._id && <UnreadMsgsLine count={props.unReadMsg.count}/>}
         {props.type === 'info' ? <InfoMsg msg={props.message} time={moment(props.createdAt).format('YYYY-MM-DD HH:mm:ss')}  /> :
         <div className={`message ${props.currUserId && props.currUserId===props.sender._id&&'myMessage'}`}>
             <Comment

@@ -81,7 +81,7 @@ router.post("/createRoom", auth, async (req, res) => {
       logo: req.body.logo,
       description: req.body.description
     })
-    newRoom.members.push({ member: req.user._id, role: 1 });
+    newRoom.members.push({ member: req.user._id, role: 1, joinDate: Date.now() });
     await newRoom.save();
     req.user.myRooms.push(newRoom._id);
     await req.user.save();

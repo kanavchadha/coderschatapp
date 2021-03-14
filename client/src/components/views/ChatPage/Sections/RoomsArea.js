@@ -13,7 +13,7 @@ const { Search } = Input;
 const { TabPane } = Tabs;
 
 function RoomsArea(props) {
-    const { currRoom, setCurrRoom, currUserId, currUserName, currUserAvatar, currUserStatus, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, stories, setStories, socket } = props;
+    const { currRoom, setCurrRoom, currUserId, currUserName, currUserAvatar, currUserStatus, showRooms, setShowRooms, showRoomInfo, setShowRoomInfo, joinRoom, getChats, unReadMsgs, stories, setStories, socket } = props;
     const [loading, setLoading] = useState(true);
     const [userContacts, setContacts] = useState([]);
     const [showForm, setShowForm] = useState(false);
@@ -272,8 +272,8 @@ function RoomsArea(props) {
                                 <div className="allRooms">
                                     {rooms ? rooms.length === 0 ? <Empty style={{ marginTop: '25px' }} /> :
                                         rooms.map(r => <RoomThread key={r._id} name={r.name} logo={r.logo} category={r.category}
-                                            currUserName={currUserName} selectedRoom={currRoom ? currRoom.name : ''}
-                                            showRoomInfo={() => showCurrRoom(r._id)} />) : ''
+                                            id={r._id} currUserName={currUserName} selectedRoom={currRoom ? currRoom.name : ''}
+                                            showRoomInfo={() => showCurrRoom(r._id)} unReadMsgs={unReadMsgs} />) : ''
                                     }
                                 </div>
                             }
@@ -311,7 +311,7 @@ function RoomsArea(props) {
                                         <div className="txtHeading"> <span className="txtHeading">{currUserName}</span> <br /> <span className="txtBody">{moment(currUserStatus || new Date()).format('HH:mm a')}</span> </div>
                                     </div>
                                     <Button icon={<EyeOutlined />} onClick={() => showUserStory(currUserId)} shape="circle" type="primary" />
-                                </div> : <h3> Add You Story Now!</h3>}
+                                </div> : <h3 style={{textAlign: 'center'}}> Add You Story Now!</h3>}
                                 {stories && stories.length !== 0 && stories.map(st =>
                                     <div className="roomThread" key={st.id}>
                                         <div> <Avatar size='large' src={st.image} />

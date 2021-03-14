@@ -31,6 +31,8 @@ export class ChatPage extends Component {
         stories: [],
         showCurrRoomInfo: false,
         chatMessage: "",
+        myUnreadMsgs: null,
+        currRoomUnreadMsg: null,
         showEmojis: false,
         codeDrawer: false,
         codeMessage: "",
@@ -50,11 +52,19 @@ export class ChatPage extends Component {
         let server = "https://codingchatapp.herokuapp.com";
         // let server = "http://localhost:5000";
 
-        this.socket = io(server);
+        this.socket = io(server, {
+            query: {
+                connUser: this.user && this.user.userData && this.user.userData
+            }
+        });
 
         this.socket.on("Error", errorMessageFromBackEnd => {
             console.log(errorMessageFromBackEnd);
             message.error(errorMessageFromBackEnd);
+        })
+
+        this.socket.on('Synchronize Rooms', () => {
+            this.props.dispatch(getRooms());
         })
 
         this.socket.on("Output Chat Message", messageFromBackEnd => {
@@ -63,10 +73,6 @@ export class ChatPage extends Component {
 
         this.socket.on("After Delete Chat Message", messageId => {
             this.props.dispatch(afterDeleteMessage(messageId));
-        })
-
-        this.socket.on('Added In Room', () => {
-            this.props.dispatch(getRooms());
         })
 
         this.socket.on('After Adding Member', member => {
@@ -143,6 +149,10 @@ export class ChatPage extends Component {
             this.fetchAllStories();
         })
 
+        this.socket.on('Unread Messages', data => {
+            this.setState({ myUnreadMsgs: data });
+        })
+
         window.addEventListener('beforeunload', this.disconnectUser);
 
         window.onpopstate = () => {
@@ -166,6 +176,11 @@ export class ChatPage extends Component {
 
     joinCurrRoom = (room) => {
         if (!this.props.user.userData) return;
+        if(this.state.myUnreadMsgs && this.state.myUnreadMsgs[room] && this.state.myUnreadMsgs[room].length>0){
+            this.setState({currRoomUnreadMsg: {start: this.state.myUnreadMsgs[room][0], count: this.state.myUnreadMsgs[room].length} });
+        }else{
+            this.setState({currRoomUnreadMsg: ''});
+        }
         this.socket.emit('join-room', {
             name: this.props.user.userData.name,
             room: room,
@@ -239,12 +254,12 @@ export class ChatPage extends Component {
     }
 
     fetchAllStories = () => {
-        Axios.get(CHAT_SERVER+'/myContactsStories').then(res => {
+        Axios.get(CHAT_SERVER + '/myContactsStories').then(res => {
             if (res.data.error) {
                 message.error(res.data.error);
             } else {
                 console.log(res.data);
-                this.setState({stories: res.data});
+                this.setState({ stories: res.data });
             }
         })
     }
@@ -258,7 +273,11 @@ export class ChatPage extends Component {
     renderCards = () =>
         this.props.chats && this.props.chats.chats
         && this.props.chats.chats.map((chat) => (
-            <ChatCard key={chat._id} currUserId={this.props.user.userData ? this.props.user.userData._id : null} {...chat} delMsg={this.deleteMessage} runChatCode={this.runChatCodeSnippet} />
+            <ChatCard key={chat._id} {...chat}
+                currUserId={this.props.user.userData ? this.props.user.userData._id : null}
+                delMsg={this.deleteMessage}
+                runChatCode={this.runChatCodeSnippet}
+                unReadMsg={this.state.currRoomUnreadMsg} />
         ));
 
     onDrop = (files) => {
@@ -442,6 +461,7 @@ export class ChatPage extends Component {
                     setShowRoomInfo={(v) => { this.setState({ showCurrRoomInfo: v }) }}
                     joinRoom={this.joinCurrRoom}
                     getChats={this.getRoomChats}
+                    unReadMsgs={this.state.myUnreadMsgs && this.state.myUnreadMsgs}
                     stories={this.state.stories}
                     setStories={this.fetchAllStories}
                     socket={this.socket}
